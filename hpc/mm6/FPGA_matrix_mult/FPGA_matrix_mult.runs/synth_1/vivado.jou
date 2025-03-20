@@ -1,0 +1,14 @@
+#-----------------------------------------------------------
+# Vivado v2023.1.1 (64-bit)
+# SW Build 3900603 on Fri Jun 16 19:30:25 MDT 2023
+# IP Build 3900379 on Sat Jun 17 05:28:05 MDT 2023
+# SharedData Build 3899622 on Fri Jun 16 03:34:24 MDT 2023
+# Start of session at: Thu Mar 20 12:27:39 2025
+# Process ID: 107778
+# Current directory: /home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.runs/synth_1
+# Command line: vivado -log MatrixMultiplier_FPGA.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source MatrixMultiplier_FPGA.tcl
+# Log file: /home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.runs/synth_1/MatrixMultiplier_FPGA.vds
+# Journal file: /home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.runs/synth_1/vivado.jou
+# Running On: Mikkel-laptop, OS: Linux, CPU Frequency: 2914.096 MHz, CPU Physical cores: 4, Host memory: 16703 MB
+#-----------------------------------------------------------
+source MatrixMultiplier_FPGA.tcl -notrace

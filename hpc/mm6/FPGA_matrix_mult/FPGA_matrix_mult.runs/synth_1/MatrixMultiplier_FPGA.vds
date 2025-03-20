@@ -1,0 +1,313 @@
+#-----------------------------------------------------------
+# Vivado v2023.1.1 (64-bit)
+# SW Build 3900603 on Fri Jun 16 19:30:25 MDT 2023
+# IP Build 3900379 on Sat Jun 17 05:28:05 MDT 2023
+# SharedData Build 3899622 on Fri Jun 16 03:34:24 MDT 2023
+# Start of session at: Thu Mar 20 12:27:39 2025
+# Process ID: 107778
+# Current directory: /home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.runs/synth_1
+# Command line: vivado -log MatrixMultiplier_FPGA.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source MatrixMultiplier_FPGA.tcl
+# Log file: /home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.runs/synth_1/MatrixMultiplier_FPGA.vds
+# Journal file: /home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.runs/synth_1/vivado.jou
+# Running On: Mikkel-laptop, OS: Linux, CPU Frequency: 2914.096 MHz, CPU Physical cores: 4, Host memory: 16703 MB
+#-----------------------------------------------------------
+source MatrixMultiplier_FPGA.tcl -notrace
+create_project: Time (s): cpu = 00:00:08 ; elapsed = 00:00:08 . Memory (MB): peak = 1274.590 ; gain = 0.023 ; free physical = 282 ; free virtual = 5146
+Command: synth_design -top MatrixMultiplier_FPGA -part xc7a35tcpg236-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 4 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 107806
+---------------------------------------------------------------------------------
+Starting Synthesize : Time (s): cpu = 00:00:04 ; elapsed = 00:00:05 . Memory (MB): peak = 1686.109 ; gain = 391.676 ; free physical = 201 ; free virtual = 4648
+---------------------------------------------------------------------------------
+INFO: [Synth 8-638] synthesizing module 'MatrixMultiplier_FPGA' [/home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.srcs/sources_1/new/FPGA_Top.vhd:17]
+	Parameter N bound to: 4 - type: integer 
+INFO: [Synth 8-3491] module 'MatrixMultiplierParallel' declared at '/home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.srcs/sources_1/new/matrix_mult.vhd:6' bound to instance 'uut' of component 'MatrixMultiplierParallel' [/home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.srcs/sources_1/new/FPGA_Top.vhd:111]
+INFO: [Synth 8-638] synthesizing module 'MatrixMultiplierParallel' [/home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.srcs/sources_1/new/matrix_mult.vhd:17]
+	Parameter N bound to: 4 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'MatrixMultiplierParallel' (0#1) [/home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.srcs/sources_1/new/matrix_mult.vhd:17]
+	Parameter CLOCK_FREQ bound to: 12000000 - type: integer 
+	Parameter BAUD_RATE bound to: 115200 - type: integer 
+INFO: [Synth 8-637] synthesizing blackbox instance 'uart' of component 'UART_TX' [/home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.srcs/sources_1/new/FPGA_Top.vhd:123]
+INFO: [Synth 8-256] done synthesizing module 'MatrixMultiplier_FPGA' (0#1) [/home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.srcs/sources_1/new/FPGA_Top.vhd:17]
+WARNING: [Synth 8-7129] Port A[119] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[118] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[117] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[116] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[115] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[114] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[113] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[112] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[111] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[110] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[109] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[108] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[107] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[106] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[105] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[104] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[103] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[102] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[101] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[100] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[99] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[98] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[97] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[96] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[87] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[86] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[85] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[84] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[83] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[82] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[81] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[80] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[79] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[78] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[77] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[76] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[75] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[74] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[73] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[72] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[71] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[70] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[69] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[68] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[67] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[66] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[65] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[64] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[55] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[54] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[53] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[52] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[51] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[50] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[49] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[48] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[47] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[46] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[45] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[44] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[43] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[42] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[41] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[40] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[39] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[38] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[37] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[36] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[35] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[34] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[33] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[32] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[23] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[22] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[21] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[20] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[19] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[18] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[17] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[16] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[15] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[14] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[13] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[12] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[11] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[10] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[9] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[8] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[7] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[6] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[5] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[4] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[3] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[2] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[1] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port A[0] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port B[95] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port B[94] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port B[93] in module MatrixMultiplierParallel is either unconnected or has no load
+WARNING: [Synth 8-7129] Port B[92] in module MatrixMultiplierParallel is either unconnected or has no load
+INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished Synthesize : Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 1754.078 ; gain = 459.645 ; free physical = 220 ; free virtual = 4530
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:07 ; elapsed = 00:00:08 . Memory (MB): peak = 1768.922 ; gain = 474.488 ; free physical = 235 ; free virtual = 4531
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a35tcpg236-1
+INFO: [Device 21-403] Loading part xc7a35tcpg236-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:07 ; elapsed = 00:00:08 . Memory (MB): peak = 1776.926 ; gain = 482.492 ; free physical = 234 ; free virtual = 4530
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:08 ; elapsed = 00:00:08 . Memory (MB): peak = 1792.941 ; gain = 498.508 ; free physical = 213 ; free virtual = 4508
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input   32 Bit       Adders := 2     
++---Registers : 
+	               32 Bit    Registers := 2     
+	               16 Bit    Registers := 16    
+	                8 Bit    Registers := 1     
+	                1 Bit    Registers := 6     
++---Muxes : 
+	   2 Input    8 Bit        Muxes := 1     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 90 (col length:60)
+BRAMs: 100 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:13 ; elapsed = 00:00:13 . Memory (MB): peak = 1916.355 ; gain = 621.922 ; free physical = 219 ; free virtual = 4399
+---------------------------------------------------------------------------------
+No constraint files found.
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:13 ; elapsed = 00:00:13 . Memory (MB): peak = 1916.355 ; gain = 621.922 ; free physical = 218 ; free virtual = 4398
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:13 ; elapsed = 00:00:14 . Memory (MB): peak = 1924.363 ; gain = 629.930 ; free physical = 212 ; free virtual = 4389
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:17 ; elapsed = 00:00:18 . Memory (MB): peak = 1924.363 ; gain = 629.930 ; free physical = 263 ; free virtual = 4160
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:17 ; elapsed = 00:00:18 . Memory (MB): peak = 1924.363 ; gain = 629.930 ; free physical = 263 ; free virtual = 4160
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:18 ; elapsed = 00:00:18 . Memory (MB): peak = 1924.363 ; gain = 629.930 ; free physical = 261 ; free virtual = 4168
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:18 ; elapsed = 00:00:19 . Memory (MB): peak = 1924.363 ; gain = 629.930 ; free physical = 261 ; free virtual = 4168
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:18 ; elapsed = 00:00:19 . Memory (MB): peak = 1924.363 ; gain = 629.930 ; free physical = 261 ; free virtual = 4168
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:18 ; elapsed = 00:00:19 . Memory (MB): peak = 1924.363 ; gain = 629.930 ; free physical = 261 ; free virtual = 4168
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++------+--------------+----------+
+|      |BlackBox name |Instances |
++------+--------------+----------+
+|1     |UART_TX       |         1|
++------+--------------+----------+
+
+Report Cell Usage: 
++------+-------------+------+
+|      |Cell         |Count |
++------+-------------+------+
+|1     |UART_TX_bbox |     1|
+|2     |BUFG         |     2|
+|3     |CARRY4       |    52|
+|4     |LUT1         |    40|
+|5     |LUT2         |    17|
+|6     |LUT3         |     2|
+|7     |LUT4         |     5|
+|8     |LUT5         |     3|
+|9     |LUT6         |    34|
+|10    |MUXF7        |    12|
+|11    |MUXF8        |     6|
+|12    |FDRE         |   193|
+|13    |FDSE         |     1|
+|14    |IBUF         |     2|
+|15    |OBUF         |     9|
++------+-------------+------+
+
+Report Instance Areas: 
++------+---------+-------------------------+------+
+|      |Instance |Module                   |Cells |
++------+---------+-------------------------+------+
+|1     |top      |                         |   380|
+|2     |  uut    |MatrixMultiplierParallel |   258|
++------+---------+-------------------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:18 ; elapsed = 00:00:19 . Memory (MB): peak = 1924.363 ; gain = 629.930 ; free physical = 261 ; free virtual = 4168
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 209 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:18 ; elapsed = 00:00:19 . Memory (MB): peak = 1924.363 ; gain = 629.930 ; free physical = 251 ; free virtual = 4158
+Synthesis Optimization Complete : Time (s): cpu = 00:00:18 ; elapsed = 00:00:19 . Memory (MB): peak = 1924.371 ; gain = 629.930 ; free physical = 251 ; free virtual = 4158
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1924.371 ; gain = 0.000 ; free physical = 541 ; free virtual = 4440
+INFO: [Netlist 29-17] Analyzing 70 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2027.062 ; gain = 0.000 ; free physical = 431 ; free virtual = 4346
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Synth Design complete | Checksum: 837b1216
+INFO: [Common 17-83] Releasing license: Synthesis
+19 Infos, 101 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:23 ; elapsed = 00:00:21 . Memory (MB): peak = 2027.062 ; gain = 752.473 ; free physical = 431 ; free virtual = 4346
+INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 1428.076; main = 1316.878; forked = 374.507
+INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 2765.789; main = 2027.062; forked = 969.879
+INFO: [Common 17-1381] The checkpoint '/home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.runs/synth_1/MatrixMultiplier_FPGA.dcp' has been generated.
+INFO: [runtcl-4] Executing : report_utilization -file MatrixMultiplier_FPGA_utilization_synth.rpt -pb MatrixMultiplier_FPGA_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Thu Mar 20 12:28:11 2025...

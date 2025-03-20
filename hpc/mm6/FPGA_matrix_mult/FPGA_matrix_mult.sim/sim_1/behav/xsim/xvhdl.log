@@ -1,0 +1,2 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/mikkel/repoes/ESD6/ESD6-Courses/hpc/mm6/FPGA_matrix_mult/FPGA_matrix_mult.srcs/sources_1/new/Top.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'MatrixMultiplier_TB'

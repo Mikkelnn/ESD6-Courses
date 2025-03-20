@@ -1,0 +1,7 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../FPGA_matrix_mult.srcs/sources_1/new/matrix_mult.vhd" \
+"../../../../FPGA_matrix_mult.srcs/sources_1/new/Top.vhd" \
+
+# Do not sort compile order
+nosort

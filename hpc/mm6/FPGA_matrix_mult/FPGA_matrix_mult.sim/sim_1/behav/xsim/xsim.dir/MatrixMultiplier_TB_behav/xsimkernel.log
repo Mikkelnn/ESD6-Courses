@@ -1,0 +1,4 @@
+Running: xsim.dir/MatrixMultiplier_TB_behav/xsimk -simmode gui -wdb MatrixMultiplier_TB_behav.wdb -simrunnum 0 -socket 59473
+Design successfully loaded
+Design Loading Memory Usage: 23260 KB (Peak: 23900 KB)
+Design Loading CPU Usage: 30 ms
