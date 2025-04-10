@@ -1,54 +1,54 @@
 ## Build results
-*/bin/
-*/obj/
-*/out/
+bin/
+obj/
+out/
 
 ## User-specific files
-*/*.user
-*/*.suo
-*/*.userosscache
-*/*.sln.docstates
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
 ## OS-generated files
-*/.DS_Store
-*/Thumbs.db
+.DS_Store
+Thumbs.db
 
 ## Rider & VS Code
-*/.idea/
-*/.vscode/
-*/*.code-workspace
+.idea/
+.vscode/
+*.code-workspace
 
 ## Visual Studio
-*/.vs/
-*/*.psess
-*/*.vsp
-*/*.vspscc
-*/*.vssscc
-*/*.cache
+.vs/
+*.psess
+*.vsp
+*.vspscc
+*.vssscc
+*.cache
 
 ## Logs
-*/*.log
+*.log
 
 ## NuGet
-*/*.nupkg
-*/*.snupkg
-*/.nuget/
-*/packages/
-*/project.lock.json
-*/project.fragment.lock.json
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
 
 ## Dotnet-specific
-*/*.dbmdl
-*/*.pdb
-*/*.mdb
+*.dbmdl
+*.pdb
+*.mdb
 
 # Exclude test results
-*/TestResults/
+TestResults/
 
 ## Others
-*/*.swp
-*/*.bak
-*/*.tmp
+*.swp
+*.bak
+*.tmp
 
 ## Environment files
-*/.env
+.env
