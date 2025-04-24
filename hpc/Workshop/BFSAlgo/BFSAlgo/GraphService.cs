@@ -8,21 +8,26 @@ namespace BFSAlgo
 {
     internal class GraphService
     {
-        public static List<int>[] GenerateGraph(int nodeCount, int maxEdgesPerNode)
+        public static List<uint>[] GenerateGraph(uint nodeCount, uint maxEdgesPerNode)
         {
-            var rand = new Random();
-            var graph = new List<int>[nodeCount];
-            var edgeSet = new HashSet<(int, int)>();
+            Console.WriteLine($"nodeCount: {nodeCount} maxEdgesPerNode: {maxEdgesPerNode}");
 
-            for (int i = 0; i < nodeCount; i++)
-                graph[i] = new List<int>();
+            var rand = Random.Shared;
+            var graph = new List<uint>[nodeCount];
+            var edgeSet = new HashSet<(uint, uint)>();
 
-            for (int i = 0; i < nodeCount; i++)
+            for (uint i = 0; i < nodeCount; i++)
+                graph[i] = new List<uint>();
+
+            for (uint i = 0; i < nodeCount; i++)
             {
-                int localMaxEdgeCount = Random.Shared.Next(maxEdgesPerNode);
+                if (i % (nodeCount / 100) == 0)
+                    Console.WriteLine($"i = {i}");
+
+                uint localMaxEdgeCount = (uint)rand.NextInt64(maxEdgesPerNode);
                 while (graph[i].Count < localMaxEdgeCount)
                 {
-                    int target = rand.Next(nodeCount);
+                    uint target = (uint)rand.NextInt64(nodeCount);
                     if (target != i)
                     {
                         var edge = (Math.Min(i, target), Math.Max(i, target));
@@ -39,30 +44,30 @@ namespace BFSAlgo
             return graph;
         }
 
-        public static void SaveGraph(List<int>[] graph, string path)
+        public static void SaveGraph(List<uint>[] graph, string path)
         {
             using (var writer = new StreamWriter(path, false))
             {
-                for (int i = 0; i < graph.Length; i++)
+                for (uint i = 0; i < graph.Length; i++)
                 {
                     writer.WriteLine($"{i}:{string.Join(",", graph[i])}");
                 }
             }
         }
 
-        public static List<int>[] LoadGraph(string path)
+        public static List<uint>[] LoadGraph(string path)
         {
             var lines = File.ReadAllLines(path);
-            var graph = new List<int>[lines.Length];
+            var graph = new List<uint>[lines.Length];
 
-            for (int i = 0; i < lines.Length; i++)
+            for (uint i = 0; i < lines.Length; i++)
             {
                 var parts = lines[i].Split(':');
                 var neighbors = parts.Length > 1 && !string.IsNullOrEmpty(parts[1])
-                    ? Array.ConvertAll(parts[1].Split(','), int.Parse)
-                    : Array.Empty<int>();
+                    ? Array.ConvertAll(parts[1].Split(','), uint.Parse)
+                    : Array.Empty<uint>();
 
-                graph[i] = new List<int>(neighbors);
+                graph[i] = new List<uint>(neighbors);
             }
 
             return graph;
