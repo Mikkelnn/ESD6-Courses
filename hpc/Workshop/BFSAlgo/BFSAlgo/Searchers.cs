@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BFSAlgo.Distributed;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -111,6 +112,12 @@ namespace BFSAlgo
                     currentFrontier.AddRange(list);
                 }
             }
+        }
+
+        public static async Task BFS_Distributed(List<uint>[] graph, uint startNode, int numWorkers, bool evenPartitioning)
+        {
+            var coordinator = new Coordinator(graph, startNode, numWorkers, evenPartitioning);
+            await coordinator.Run();
         }
     }
 }
