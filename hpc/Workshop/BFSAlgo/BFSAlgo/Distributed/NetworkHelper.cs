@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -21,11 +22,37 @@ namespace BFSAlgo.Distributed
         void Close();
     }
 
-    public class NetworkStreamWrapper : NetworkStream, INetworkStream
+    public class NetworkStreamWrapper(Socket socket) : NetworkStream(socket, true), INetworkStream
     {
-        public NetworkStreamWrapper(Socket socket) : base(socket, true)
-        {
+        private TcpClient tcpClient;
 
+        public static async Task<NetworkStreamWrapper> GetCoordinatorInstance(IPAddress address, int port)
+        {
+            var tcpClient = new TcpClient();
+            await tcpClient.ConnectAsync(address, port);
+
+            //tcpClient.Connect(address, port);
+
+            var instance = new NetworkStreamWrapper(tcpClient.Client);
+            instance.tcpClient = tcpClient;
+            return instance;
+        }
+
+        public static async Task<NetworkStreamWrapper> GetWorkerInstanceAsync(IPAddress address, int port)
+        {
+            var listener = new TcpListener(address, port);
+            listener.Start();
+
+            var tcpClient = await listener.AcceptTcpClientAsync();
+            var instance = new NetworkStreamWrapper(tcpClient.Client);
+            instance.tcpClient = tcpClient;
+            return instance;
+        }
+
+        public override void Close()
+        {
+            base.Close();
+            tcpClient?.Close();
         }
     }
 
@@ -61,6 +88,7 @@ namespace BFSAlgo.Distributed
             using var ms = new MemoryStream();
             using var writer = new BinaryWriter(ms);
 
+            writer.Write(fullGraph.Length);
             writer.Write(ownedNodes.Count);
 
             foreach (var node in ownedNodes)
@@ -109,7 +137,7 @@ namespace BFSAlgo.Distributed
             return buffer;
         }
 
-        public static async Task<Dictionary<uint, List<uint>>> ReceiveGraphPartitionAsync(INetworkStream stream)
+        public static async Task<(Dictionary<uint, uint[]>, int)> ReceiveGraphPartitionAsync(INetworkStream stream)
         {
             var lengthBytes = new byte[4];
             await stream.ReadExactlyAsync(lengthBytes);
@@ -118,23 +146,24 @@ namespace BFSAlgo.Distributed
             var buffer = new byte[totalLength];
             await stream.ReadExactlyAsync(buffer);
 
-            var dict = new Dictionary<uint, List<uint>>();
+            var dict = new Dictionary<uint, uint[]>();
             using var ms = new MemoryStream(buffer);
             using var reader = new BinaryReader(ms);
 
+            int totalNodeCount = reader.ReadInt32();
             int nodeCount = reader.ReadInt32();
             for (int i = 0; i < nodeCount; i++)
             {
                 uint nodeId = reader.ReadUInt32();
                 int neighborCount = reader.ReadInt32();
-                var neighbors = new List<uint>(neighborCount);
+                var neighbors = new uint[neighborCount];
                 for (int j = 0; j < neighborCount; j++)
-                    neighbors.Add(reader.ReadUInt32());
+                    neighbors[j] = reader.ReadUInt32();
 
                 dict[nodeId] = neighbors;
             }
 
-            return dict;
+            return (dict, totalNodeCount);
         }
     }
 }

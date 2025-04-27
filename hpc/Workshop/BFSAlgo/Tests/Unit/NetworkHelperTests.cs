@@ -151,6 +151,7 @@ namespace Tests.Unit
 
             var expectedData = new byte[]
             {
+                3, 0, 0, 0,           // Total number of nodes (3)
                 // Data of the graph partition
                 3, 0, 0, 0,           // Number of nodes (3)
 
@@ -189,6 +190,7 @@ namespace Tests.Unit
             var mockStream = new NetworkStreamMock();
             var data = new byte[]
             {
+                2, 0, 0, 0,           // Total number of nodes (2)
                 // Data of the graph partition
                 2, 0, 0, 0,           // Number of nodes (2)
                 0, 0, 0, 0,           // Node 0
@@ -204,9 +206,10 @@ namespace Tests.Unit
             mockStream.AddDataToRead(data);
 
             // Act
-            var result = await NetworkHelper.ReceiveGraphPartitionAsync(mockStream);
+            var (result, totlalNodeCount) = await NetworkHelper.ReceiveGraphPartitionAsync(mockStream);
 
             // Assert: Verify the graph partition is parsed correctly
+            Assert.Equal(2, totlalNodeCount);
             Assert.Equal(2, result.Count);
             Assert.Contains(0U, result.Keys);
             Assert.Contains(1U, result.Keys);

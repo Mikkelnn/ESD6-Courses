@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>BFSBenchmarks_G2-20250427-222519</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.14.0, Windows 10 (10.0.19045.5737/22H2/2022Update)
+Intel Core i7-7820X CPU 3.60GHz (Kaby Lake), 1 CPU, 16 logical and 8 physical cores
+.NET SDK 9.0.203
+  [Host]     : .NET 9.0.4 (9.0.425.16305), X64 RyuJIT AVX-512F+CD+BW+DQ+VL
+  DefaultJob : .NET 9.0.4 (9.0.425.16305), X64 RyuJIT AVX-512F+CD+BW+DQ+VL
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>Method         </th><th>maxThreads</th><th>numWorkers</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>Sequential</td><td>?</td><td>?</td><td>4.868 s</td><td>0.0254 s</td><td>0.0225 s</td><td>4.874 s</td><td>129.19 MB</td>
+</tr><tr><td>Parallel</td><td>4</td><td>?</td><td>5.180 s</td><td>0.0419 s</td><td>0.0349 s</td><td>5.173 s</td><td>165.35 MB</td>
+</tr><tr><td>Parallel_V3</td><td>4</td><td>?</td><td>2.681 s</td><td>0.0530 s</td><td>0.0544 s</td><td>2.656 s</td><td>103.36 MB</td>
+</tr><tr><td>Parallel_V3_NoLock</td><td>4</td><td>?</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Parallel_V3_Partition</td><td>4</td><td>?</td><td>2.667 s</td><td>0.0503 s</td><td>0.0471 s</td><td>2.658 s</td><td>103.47 MB</td>
+</tr><tr><td>Distributed</td><td>?</td><td>4</td><td>9.450 s</td><td>0.3001 s</td><td>0.8850 s</td><td>9.850 s</td><td>11429.73 MB</td>
+</tr><tr><td>Parallel</td><td>8</td><td>?</td><td>4.120 s</td><td>0.0321 s</td><td>0.0250 s</td><td>4.122 s</td><td>165.35 MB</td>
+</tr><tr><td>Parallel_V3</td><td>8</td><td>?</td><td>2.233 s</td><td>0.0406 s</td><td>0.0379 s</td><td>2.231 s</td><td>103.36 MB</td>
+</tr><tr><td>Parallel_V3_NoLock</td><td>8</td><td>?</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Parallel_V3_Partition</td><td>8</td><td>?</td><td>2.205 s</td><td>0.0278 s</td><td>0.0260 s</td><td>2.197 s</td><td>103.52 MB</td>
+</tr><tr><td>Distributed</td><td>?</td><td>8</td><td>7.979 s</td><td>0.1628 s</td><td>0.4774 s</td><td>7.919 s</td><td>12082.39 MB</td>
+</tr><tr><td>Parallel_V3</td><td>12</td><td>?</td><td>2.099 s</td><td>0.0410 s</td><td>0.0402 s</td><td>2.090 s</td><td>103.37 MB</td>
+</tr><tr><td>Parallel_V3_NoLock</td><td>12</td><td>?</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Parallel_V3_Partition</td><td>12</td><td>?</td><td>2.090 s</td><td>0.0275 s</td><td>0.0257 s</td><td>2.091 s</td><td>103.57 MB</td>
+</tr><tr><td>Distributed</td><td>?</td><td>12</td><td>8.869 s</td><td>0.1763 s</td><td>0.4915 s</td><td>9.045 s</td><td>14924.31 MB</td>
+</tr><tr><td>Parallel</td><td>16</td><td>?</td><td>3.939 s</td><td>0.0272 s</td><td>0.0254 s</td><td>3.945 s</td><td>165.36 MB</td>
+</tr><tr><td>Parallel_V3</td><td>16</td><td>?</td><td>2.002 s</td><td>0.0324 s</td><td>0.0303 s</td><td>1.997 s</td><td>103.39 MB</td>
+</tr><tr><td>Parallel_V3_NoLock</td><td>16</td><td>?</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr><tr><td>Parallel_V3_Partition</td><td>16</td><td>?</td><td>2.006 s</td><td>0.0301 s</td><td>0.0281 s</td><td>2.005 s</td><td>103.62 MB</td>
+</tr><tr><td>Distributed</td><td>?</td><td>16</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td>
+</tr></tbody></table>
+</body>
+</html>

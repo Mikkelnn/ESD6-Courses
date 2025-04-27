@@ -24,6 +24,11 @@ namespace Tests.Unit
 
             var mockStream = new NetworkStreamMock();
 
+            // Simulate receiving partial graph - this is a quick fix...
+            await NetworkHelper.SendGraphPartitionAsync(mockStream, assignedNodes, fullGraph);
+            mockStream.AddDataToRead(mockStream.GetWrittenData());
+            mockStream.AddDataToRead(mockStream.GetWrittenData());
+
             // Simulate receiving frontier [0]
             mockStream.AddDataToRead(BitConverter.GetBytes(sizeof(uint))); // Length of 1 uint
             mockStream.AddDataToRead(BitConverter.GetBytes(0U));            // Frontier: [0]
@@ -37,7 +42,7 @@ namespace Tests.Unit
             // Simulate termination (null frontier)
             mockStream.AddDataToRead(BitConverter.GetBytes(-1)); // -1 signals termination
 
-            var worker = new Worker(0, assignedNodes, fullGraph, 0, mockStream);
+            var worker = new Worker(0, 0, mockStream);
 
             // Act
             await worker.Start();

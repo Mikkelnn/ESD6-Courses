@@ -11,17 +11,19 @@ public class Program
     public static async Task Main(string[] args)
     {
         //GenerateGraphs();
-        Console.WriteLine("loading g1..");
-        var g1 = GraphService.LoadGraph("g1_adjacency_list.bin");
-        Stopwatch sw = Stopwatch.StartNew();
-        await Searchers.BFS_Distributed(g1, 0, numWorkers: 2);
-        //Searchers.BFS_Parallel_V3(g1, 0, 12);
-        //Searchers.BFS_Parallel_V3_Partition(g1, 0, 4);
-        sw.Stop();
-        Console.WriteLine($"Finished in: {sw.ElapsedMilliseconds} ms");
+        //Console.WriteLine("loading g2..");
+        //var loadedGraph = GraphService.LoadGraph("g2_adjacency_list.bin");
+        //Stopwatch sw = Stopwatch.StartNew();
+        //Searchers.BFS_Sequential(loadedGraph, 0);
+        //await Searchers.BFS_Distributed(loadedGraph, 0, numWorkers: 12);
+        //Searchers.BFS_Parallel_V3(loadedGraph, 0, 12);
+        //Searchers.BFS_Parallel_V3_Partition(loadedGraph, 0, 4);
+        //sw.Stop();
+        //Console.WriteLine($"Finished in: {sw.ElapsedMilliseconds} ms");
 
 
-        //var summary = BenchmarkRunner.Run<MyBenchmarks>();
+        var summary_g1 = BenchmarkRunner.Run<BFSBenchmarks_G1>();
+        var summary_g2 = BenchmarkRunner.Run<BFSBenchmarks_G2>();
 
         Console.ReadKey();
     }
@@ -52,83 +54,107 @@ public class Program
 }
 
 [MemoryDiagnoser(false)]
-public class MyBenchmarks
-{   
-    public static List<uint>[] g1;
-    public static List<uint>[] g2;
+public class BFSBenchmarks_G1
+{
+    public static List<uint>[] loadedGraph;
 
     [GlobalSetup]
     public void Setup()
     {
-        const string G1_FileName = "g1_adjacency_list.bin";
-        const string G2_FileName = "g2_adjacency_list.bin";
-
-        // graph 1
-        //Console.WriteLine("Loading graph G1 from file...");
-        //g1 = GraphService.LoadGraph(G1_FileName);
-
-        Console.WriteLine("Loading graph G2 from file...");
-        g2 = GraphService.LoadGraph(G2_FileName);
+        string FileName = "g1_adjacency_list.bin";
+        Console.WriteLine($"Loading graph {FileName} from file...");
+        loadedGraph = GraphService.LoadGraph(FileName);
     }
 
-    //[Benchmark]
-    //public void Sequential_G1() => Searchers.BFS_Sequential(g1, 0);
+    [Benchmark]
+    public void Sequential() => Searchers.BFS_Sequential(loadedGraph, 0);
 
-    //[Benchmark]
-    //public void Sequential_G2() => Searchers.BFS_Sequential(g2, 0);
-
-    //[Benchmark]
-    //[Arguments(4)]
-    //[Arguments(8)]
-    //[Arguments(16)]
-    //public void Parallel_G1(int maxThreads) => Searchers.BFS_Parallel(g1, 0, maxThreads);
-
-    //[Benchmark]
-    //[Arguments(4)]
-    //[Arguments(8)]
-    //[Arguments(16)]
-    //public void Parallel_G2(int maxThreads) => Searchers.BFS_Parallel(g2, 0, maxThreads);
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(16)]
+    public void Parallel(int maxThreads) => Searchers.BFS_Parallel(loadedGraph, 0, maxThreads);
 
     [Benchmark]
     [Arguments(4)]
     [Arguments(8)]
     [Arguments(12)]
-    public void Parallel_G2_V3(int maxThreads) => Searchers.BFS_Parallel_V3(g2, 0, maxThreads);
+    [Arguments(16)]
+    public void Parallel_V3(int maxThreads) => Searchers.BFS_Parallel_V3(loadedGraph, 0, maxThreads);
 
     [Benchmark]
     [Arguments(4)]
     [Arguments(8)]
     [Arguments(12)]
-    public void Parallel_G2_V3_NoLock(int maxThreads) => Searchers.BFS_Parallel_V3_noLock(g2, 0, maxThreads);
+    [Arguments(16)]
+    public void Parallel_V3_NoLock(int maxThreads) => Searchers.BFS_Parallel_V3_noLock(loadedGraph, 0, maxThreads);
 
     [Benchmark]
     [Arguments(4)]
     [Arguments(8)]
     [Arguments(12)]
-    public void Parallel_G2_V3_Partition(int maxThreads) => Searchers.BFS_Parallel_V3_Partition(g2, 0, maxThreads);
-    
-
-    //[Benchmark(Baseline = true)]
-    //public void Sequential_G2() => Searchers.BFS_Sequential(g2, 0);
-
-    //[Benchmark]
-    //[Arguments(16)]
-    //public void Parallel_G2(int maxThreads) => Searchers.BFS_Parallel(g2, 0, maxThreads);
-
-    //[Benchmark]
-    //[Arguments(12)]
-    //public void Parallel_V2_G2(int maxThreads) => Searchers.BFS_Parallel_V2(g2, 0, maxThreads);
-
-    //[Benchmark]
-    //[Arguments(12)]
-    //public void Distributed(int numWorkers) => Searchers.BFS_Distributed(g2, 0, numWorkers, evenPartitioning: true);
+    [Arguments(16)]
+    public void Parallel_V3_Partition(int maxThreads) => Searchers.BFS_Parallel_V3_Partition(loadedGraph, 0, maxThreads);
 
 
-    //[Benchmark]
-    //[Arguments(1, true)]
-    //[Arguments(1, false)]
-    //[Arguments(2, true)]
-    //[Arguments(2, false)]
-    //public void Distributed(int numWorkers, bool evenPartitioning) => Searchers.BFS_Distributed(g1, 0, numWorkers, evenPartitioning);
-
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(12)]
+    [Arguments(16)]
+    public void Distributed(int numWorkers) => Searchers.BFS_Distributed(loadedGraph, 0, numWorkers).Wait();
 }
+
+[MemoryDiagnoser(false)]
+public class BFSBenchmarks_G2
+{
+    public static List<uint>[] loadedGraph;
+
+    [GlobalSetup]
+    public void Setup()
+    {
+        string FileName = "g2_adjacency_list.bin";
+        Console.WriteLine($"Loading graph {FileName} from file...");
+        loadedGraph = GraphService.LoadGraph(FileName);
+    }
+
+    [Benchmark]
+    public void Sequential() => Searchers.BFS_Sequential(loadedGraph, 0);
+
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(16)]
+    public void Parallel(int maxThreads) => Searchers.BFS_Parallel(loadedGraph, 0, maxThreads);
+
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(12)]
+    [Arguments(16)]
+    public void Parallel_V3(int maxThreads) => Searchers.BFS_Parallel_V3(loadedGraph, 0, maxThreads);
+
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(12)]
+    [Arguments(16)]
+    public void Parallel_V3_NoLock(int maxThreads) => Searchers.BFS_Parallel_V3_noLock(loadedGraph, 0, maxThreads);
+
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(12)]
+    [Arguments(16)]
+    public void Parallel_V3_Partition(int maxThreads) => Searchers.BFS_Parallel_V3_Partition(loadedGraph, 0, maxThreads);
+
+
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(12)]
+    [Arguments(16)]
+    public void Distributed(int numWorkers) => Searchers.BFS_Distributed(loadedGraph, 0, numWorkers).Wait();
+}
+
+

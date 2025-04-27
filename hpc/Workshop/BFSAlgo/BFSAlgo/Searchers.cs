@@ -10,27 +10,6 @@ namespace BFSAlgo
 {
     public class Searchers
     {
-        //public static void BFS_Sequential(List<uint>[] graph, uint startNode)
-        //{
-        //    var visited = new bool[graph.Length];
-        //    var queue = new Queue<uint>();
-        //    visited[startNode] = true;
-        //    queue.Enqueue(startNode);
-
-        //    while (queue.Count > 0)
-        //    {
-        //        long node = queue.Dequeue();
-        //        foreach (var neighbor in graph[node])
-        //        {
-        //            if (!visited[neighbor])
-        //            {
-        //                visited[neighbor] = true;
-        //                queue.Enqueue(neighbor);
-        //            }
-        //        }
-        //    }
-        //}
-
         public static void BFS_Sequential(List<uint>[] graph, uint startNode)
         {
             var visited = new Bitmap(graph.Length);

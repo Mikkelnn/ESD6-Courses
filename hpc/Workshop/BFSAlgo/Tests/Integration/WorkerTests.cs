@@ -24,15 +24,15 @@ namespace Tests.Integration
             };
 
             int port = 5000;
-            var worker = new Worker(0, assignedNodes, fullGraph, port);
+            var worker = new Worker(0, port);
 
             var workerTask = Task.Run(worker.Start);
 
-            using var client = new TcpClient();
-            await client.ConnectAsync(IPAddress.Loopback, port);
-            var networkStream = new NetworkStreamWrapper(client.Client);
+            var networkStream = await NetworkStreamWrapper.GetCoordinatorInstance(IPAddress.Loopback, port);
 
             // Act
+            // 0. Send partial graph
+            await NetworkHelper.SendGraphPartitionAsync(networkStream, assignedNodes, fullGraph);
             // 1. Send a frontier containing node 0
             await NetworkHelper.SendDataAsync(networkStream, new List<uint> { 0 }.ToReadOnlyMemory());
             // 2. Send empty visited bitmap

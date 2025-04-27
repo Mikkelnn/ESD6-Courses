@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.Diagnostics.Tracing.Parsers.FrameworkEventSource;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -11,11 +13,10 @@ namespace BFSAlgo.Distributed
 {
     public class Coordinator
     {
-        private readonly List<uint>[] graph;
+        private List<uint>[] graph;
         private readonly uint startNode;
         private readonly int numWorkers;
         private readonly int basePort = 9000;
-        private List<uint>[] partitioned;
 
         public Coordinator(List<uint>[] graph, uint startNode, int numWorkers)
         {
@@ -26,94 +27,82 @@ namespace BFSAlgo.Distributed
 
         public async Task Run()
         {
-            //Stopwatch sw = Stopwatch.StartNew();
-            partitioned = GraphPartitioner.Partition(graph, numWorkers);
-            //sw.Stop();
-            //Console.WriteLine($"coordinator; partion time: {sw.ElapsedMilliseconds} ms");
+            // spawn workers and connect
+            Task[] workerTasks = SpawnWorkers(numWorkers);
+            INetworkStream[] streams = await ConnectToWorkers(numWorkers);
 
-            var workerTasks = new Task[numWorkers];
-
-            for (int i = 0; i < numWorkers; i++)
-            {
-                int port = basePort + i;
-                int id = i;
-                workerTasks[i] = Task.Run(async () =>
-                {
-                    var worker = new Worker(id, partitioned[id], graph, port);
-                    await worker.Start();
-                });
-            }
-
-            //await Task.Delay(1000);
-
-            // Connect to workers
-            var clients = new TcpClient[numWorkers];
-            var streams = new NetworkStreamWrapper[numWorkers];
-            for (int i = 0; i < numWorkers; i++)
-            {
-                clients[i] = new TcpClient("localhost", basePort + i);
-                streams[i] = new NetworkStreamWrapper(clients[i].Client);
-            }
-
-            var frontier = new List<uint> { startNode };
+            List<uint>[] partitioned = GraphPartitioner.Partition(graph, numWorkers);
+            await SendPartitions(streams, partitioned);
+            
+            //var frontier = new List<uint> { startNode };
             var visitedGlobal = new Bitmap(graph.Length);
             visitedGlobal.Set(startNode);
 
+            var partitionedFrontier = new List<uint>[numWorkers];
+            for (int i = 0; i < partitionedFrontier.Length; i++)
+                partitionedFrontier[i] ??= new List<uint>();
 
-            //Stopwatch sw_visitedGlobal = new();
-            //Stopwatch sw_sendFrontiers = new();
-            //Stopwatch sw_recieveFrontiers = new();
+            // add ninitial frontier to accosiated worker
+            partitionedFrontier[startNode % numWorkers] = new List<uint>() { startNode };
 
-            //int frontierIndex = 0;
-            while (frontier.Count > 0)
+            while (partitionedFrontier.Any(x => x.Count != 0))
             {
-                //Console.WriteLine($"coordinator; frontierIndex: {frontierIndex}, size: {frontier.Count}");
-                //frontierIndex++;
+                // Broadcast frontier information
+                await SendNewFrontier(streams, visitedGlobal, partitionedFrontier);
 
-                // Broadcast
-                //sw_sendFrontiers.Start();
-                var currentGlobalVisited = visitedGlobal.AsReadOnlyMemory;
-                var frontierData = frontier.ToReadOnlyMemory();
+                for (int i = 0; i < partitionedFrontier.Length; i++)
+                    partitionedFrontier[i].Clear();
+                //frontier.Clear();
 
-                var sendTasks = streams.Select(async stream => {
-                    await NetworkHelper.SendDataAsync(stream, frontierData);
-                    await NetworkHelper.SendDataAsync(stream, currentGlobalVisited);
-                    await NetworkHelper.FlushStreamAsync(stream);
-                });
-                await Task.WhenAll(sendTasks);  // Wait for all sends to complete
-                //sw_sendFrontiers.Stop();
-
-                //var newFrontier = new List<uint>();
-                frontier.Clear();
-
-                //sw_recieveFrontiers.Start();
                 var receiveTasks = streams.Select(s => NetworkHelper.ReceiveUintArrayAsync(s));
                 var results = await Task.WhenAll(receiveTasks);  // Wait for all receives to complete
-                //sw_recieveFrontiers.Stop();
 
                 for (int i = 0; i < numWorkers; i++)
                 {
-                    //var partial = NetworkHelper.ReceiveUintArrayAsync(streams[i]);
-                    //sw_visitedGlobal.Start();
                     foreach (var node in results[i])
                     {
                         if (!visitedGlobal.Get(node))
                         {
                             visitedGlobal.Set(node);
-                            frontier.Add(node);
+                            partitionedFrontier[node % numWorkers].Add(node);
+                            //frontier.Add(node);
                         }
                     }
-                    //sw_visitedGlobal.Stop();
                 }
-
-                //frontier = newFrontier;
             }
 
-            //Console.WriteLine($"coordinator; sendFrontiers: {sw_sendFrontiers.ElapsedMilliseconds} ms");
-            //Console.WriteLine($"coordinator; recieveFrontiers: {sw_recieveFrontiers.ElapsedMilliseconds} ms");
-            //Console.WriteLine($"coordinator; visitedGlobal time: {sw_visitedGlobal.ElapsedMilliseconds} ms");
-
             // Tell workers to stop
+            await TerminateWorkers(workerTasks, streams);
+
+           //var isAllSet = visitedGlobal.IsAllSet();
+        }
+
+        private async Task SendPartitions(INetworkStream[] streams, List<uint>[] partitioned)
+        {
+            if (streams.Length != partitioned.Length) 
+                throw new ArgumentException("Not same amount of partitions as strams");
+
+            var senders = streams.Select((stream, i) => Task.Run(() => NetworkHelper.SendGraphPartitionAsync(streams[i], partitioned[i], graph)));
+
+            await Task.WhenAll(senders);
+        }
+
+        private static async Task SendNewFrontier(INetworkStream[] streams, Bitmap visitedGlobal, List<uint>[] frontier)
+        {
+            var currentGlobalVisited = visitedGlobal.AsReadOnlyMemory;
+            //var frontierData = frontier.ToReadOnlyMemory();
+
+            var sendTasks = streams.Select(async (stream, i) =>
+            {
+                await NetworkHelper.SendDataAsync(stream, frontier[i].ToReadOnlyMemory());
+                await NetworkHelper.SendDataAsync(stream, currentGlobalVisited);
+                await NetworkHelper.FlushStreamAsync(stream);
+            });
+            await Task.WhenAll(sendTasks);  // Wait for all sends to complete
+        }
+
+        private async Task TerminateWorkers(Task[] workerTasks, INetworkStream[] streams)
+        {
             var sendTasksStop = streams.Select(async stream =>
             {
                 await NetworkHelper.SendDataAsync(stream, null);
@@ -123,14 +112,38 @@ namespace BFSAlgo.Distributed
 
             for (int i = 0; i < numWorkers; i++)
             {
-                //NetworkHelper.SendUintArray(streams[i], null);
                 streams[i].Close();
-                clients[i].Close();
             }
 
-            Task.WaitAll(workerTasks);
+            await Task.WhenAll(workerTasks);
+        }
 
-            //Console.WriteLine($"Visited all: {visitedGlobal.IsAllSet()}");
+        private async Task<INetworkStream[]> ConnectToWorkers(int numWorkers)
+        {
+            // Connect to workers
+            var streams = new INetworkStream[numWorkers];
+            for (int i = 0; i < numWorkers; i++)
+                streams[i] = await NetworkStreamWrapper.GetCoordinatorInstance(IPAddress.Loopback, basePort + i);
+
+            return streams;
+        }
+
+        private Task[] SpawnWorkers(int numWorkers)
+        {
+            var workerTasks = new Task[numWorkers];
+
+            for (int i = 0; i < numWorkers; i++)
+            {
+                int port = basePort + i;
+                int id = i;
+                workerTasks[i] = Task.Run(async () =>
+                {
+                    var worker = new Worker(id, port);
+                    await worker.Start();
+                });
+            }
+
+            return workerTasks;
         }
     }
 

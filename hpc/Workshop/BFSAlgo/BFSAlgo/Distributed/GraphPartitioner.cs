@@ -5,6 +5,7 @@ namespace BFSAlgo.Distributed
 {
     public static class GraphPartitioner
     {
+        // Roundrobin partition
         public static List<uint>[] Partition(List<uint>[] graph, int partitions)
         {
             if (partitions <= 0)
