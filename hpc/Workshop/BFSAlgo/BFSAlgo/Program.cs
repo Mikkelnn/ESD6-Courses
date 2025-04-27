@@ -11,12 +11,15 @@ public class Program
     public static async Task Main(string[] args)
     {
         //GenerateGraphs();
-
-        var g1 = GraphService.LoadGraph("g2_adjacency_list.txt");
+        Console.WriteLine("loading g1..");
+        var g1 = GraphService.LoadGraph("g1_adjacency_list.bin");
         Stopwatch sw = Stopwatch.StartNew();
-        await Searchers.BFS_Distributed(g1, 0, numWorkers: 12, evenPartitioning: true);
+        await Searchers.BFS_Distributed(g1, 0, numWorkers: 2);
+        //Searchers.BFS_Parallel_V3(g1, 0, 12);
+        //Searchers.BFS_Parallel_V3_Partition(g1, 0, 4);
         sw.Stop();
         Console.WriteLine($"Finished in: {sw.ElapsedMilliseconds} ms");
+
 
         //var summary = BenchmarkRunner.Run<MyBenchmarks>();
 
@@ -31,8 +34,8 @@ public class Program
         uint G2_NodeCount = 10_000_000;
         uint G2_TargetTotalEdges = 671_088_640;
 
-        string G1_FileName = "g1_adjacency_list.txt";
-        string G2_FileName = "g2_adjacency_list.txt";
+        string G1_FileName = "g1_adjacency_list.bin";
+        string G2_FileName = "g2_adjacency_list.bin";
 
         List<uint>[] g;
 
@@ -57,19 +60,19 @@ public class MyBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        const string G1_FileName = "g1_adjacency_list.txt";
-        const string G2_FileName = "g2_adjacency_list.txt";
+        const string G1_FileName = "g1_adjacency_list.bin";
+        const string G2_FileName = "g2_adjacency_list.bin";
 
         // graph 1
-        Console.WriteLine("Loading graph G1 from file...");
-        g1 = GraphService.LoadGraph(G1_FileName);
+        //Console.WriteLine("Loading graph G1 from file...");
+        //g1 = GraphService.LoadGraph(G1_FileName);
 
-        //Console.WriteLine("Loading graph G2 from file...");
-        //g2 = GraphService.LoadGraph(G2_FileName);
+        Console.WriteLine("Loading graph G2 from file...");
+        g2 = GraphService.LoadGraph(G2_FileName);
     }
 
-    [Benchmark]
-    public void Sequential_G1() => Searchers.BFS_Sequential(g1, 0);
+    //[Benchmark]
+    //public void Sequential_G1() => Searchers.BFS_Sequential(g1, 0);
 
     //[Benchmark]
     //public void Sequential_G2() => Searchers.BFS_Sequential(g2, 0);
@@ -85,6 +88,25 @@ public class MyBenchmarks
     //[Arguments(8)]
     //[Arguments(16)]
     //public void Parallel_G2(int maxThreads) => Searchers.BFS_Parallel(g2, 0, maxThreads);
+
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(12)]
+    public void Parallel_G2_V3(int maxThreads) => Searchers.BFS_Parallel_V3(g2, 0, maxThreads);
+
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(12)]
+    public void Parallel_G2_V3_NoLock(int maxThreads) => Searchers.BFS_Parallel_V3_noLock(g2, 0, maxThreads);
+
+    [Benchmark]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(12)]
+    public void Parallel_G2_V3_Partition(int maxThreads) => Searchers.BFS_Parallel_V3_Partition(g2, 0, maxThreads);
+    
 
     //[Benchmark(Baseline = true)]
     //public void Sequential_G2() => Searchers.BFS_Sequential(g2, 0);
@@ -102,11 +124,11 @@ public class MyBenchmarks
     //public void Distributed(int numWorkers) => Searchers.BFS_Distributed(g2, 0, numWorkers, evenPartitioning: true);
 
 
-    [Benchmark]
-    [Arguments(1, true)]
-    [Arguments(1, false)]
-    [Arguments(2, true)]
-    [Arguments(2, false)]
-    public void Distributed(int numWorkers, bool evenPartitioning) => Searchers.BFS_Distributed(g1, 0, numWorkers, evenPartitioning);
+    //[Benchmark]
+    //[Arguments(1, true)]
+    //[Arguments(1, false)]
+    //[Arguments(2, true)]
+    //[Arguments(2, false)]
+    //public void Distributed(int numWorkers, bool evenPartitioning) => Searchers.BFS_Distributed(g1, 0, numWorkers, evenPartitioning);
 
 }

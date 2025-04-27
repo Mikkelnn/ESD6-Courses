@@ -5,8 +5,11 @@ namespace BFSAlgo.Distributed
 {
     public static class GraphPartitioner
     {
-        public static List<uint>[] Partition(List<uint>[] graph, int partitions, bool evenByNode)
+        public static List<uint>[] Partition(List<uint>[] graph, int partitions)
         {
+            if (partitions <= 0)
+                throw new ArgumentOutOfRangeException(nameof(partitions), "Partition count must be greater than zero.");
+
             var partitionedGraphs = new List<uint>[partitions];
 
             for (int i = 0; i < partitions; i++)
@@ -14,10 +17,7 @@ namespace BFSAlgo.Distributed
 
             for (uint i = 0; i < graph.Length; i++)
             {
-                int partitionId = evenByNode
-                    ? (int)(i % (uint)partitions)
-                    : (int)((graph[i].Count * partitions) / (double)graph.Length) % partitions; // simple heuristic
-
+                int partitionId = (int)(i % (uint)partitions);
                 partitionedGraphs[partitionId].Add(i);
             }
 

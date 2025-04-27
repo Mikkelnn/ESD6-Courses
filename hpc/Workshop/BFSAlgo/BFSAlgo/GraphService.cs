@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BFSAlgo
 {
-    internal class GraphService
+    public class GraphService
     {
         public static List<uint>[] GenerateGraph(uint nodeCount, uint maxEdgesPerNode)
         {
@@ -21,7 +21,7 @@ namespace BFSAlgo
 
             for (uint i = 0; i < nodeCount; i++)
             {
-                if (i % (nodeCount / 100) == 0)
+                if (i % Math.Max(1, (int)(nodeCount * 0.01)) == 0)
                     Console.WriteLine($"i = {i}");
 
                 uint localMaxEdgeCount = (uint)rand.NextInt64(maxEdgesPerNode);
@@ -46,6 +46,39 @@ namespace BFSAlgo
 
         public static void SaveGraph(List<uint>[] graph, string path)
         {
+            using (var stream = new FileStream(path, FileMode.Create, FileAccess.Write))
+            using (var writer = new BinaryWriter(stream))
+            {
+                writer.Write(graph.Length); // Write number of nodes
+                foreach (var neighbors in graph)
+                {
+                    writer.Write(neighbors.Count); // Write number of neighbors
+                    foreach (var neighbor in neighbors)
+                        writer.Write(neighbor); // Write each neighbor
+                }
+            }
+        }
+
+        public static List<uint>[] LoadGraph(string path)
+        {
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
+            using (var reader = new BinaryReader(stream))
+            {
+                int nodeCount = reader.ReadInt32();
+                var graph = new List<uint>[nodeCount];
+                for (int i = 0; i < nodeCount; i++)
+                {
+                    int neighborCount = reader.ReadInt32();
+                    graph[i] = new List<uint>(neighborCount);
+                    for (int j = 0; j < neighborCount; j++)
+                        graph[i].Add(reader.ReadUInt32());
+                }
+                return graph;
+            }
+        }
+
+        public static void SaveGraphText(List<uint>[] graph, string path)
+        {
             using (var writer = new StreamWriter(path, false))
             {
                 for (uint i = 0; i < graph.Length; i++)
@@ -55,7 +88,7 @@ namespace BFSAlgo
             }
         }
 
-        public static List<uint>[] LoadGraph(string path)
+        public static List<uint>[] LoadGraphTxt(string path)
         {
             var lines = File.ReadAllLines(path);
             var graph = new List<uint>[lines.Length];

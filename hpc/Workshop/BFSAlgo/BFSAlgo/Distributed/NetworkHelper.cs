@@ -2,63 +2,46 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BFSAlgo.Distributed
 {
+    public interface INetworkStream
+    {
+        Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken = default);
+        ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default);
+        ValueTask ReadExactlyAsync(Memory<byte> buffer, CancellationToken cancellationToken = default);
+        Task FlushAsync();
+        void Close();
+    }
+
+    public class NetworkStreamWrapper : NetworkStream, INetworkStream
+    {
+        public NetworkStreamWrapper(Socket socket) : base(socket, true)
+        {
+
+        }
+    }
+
     public static class NetworkHelper
     {
-        public static void SendUintArray(NetworkStream stream, List<uint> data)
+        public static ReadOnlyMemory<byte> ToReadOnlyMemory(this List<uint> list)
         {
-            if (data == null)
-            {
-                var lenBytes = BitConverter.GetBytes(-1);
-                stream.Write(lenBytes, 0, 4);
-                return;
-            }
-
-            var uintArray = data.ToArray();
-            var length = uintArray.Length;
-
-            // send length of data first so we know the amount we will recieve at the other end
-            var lengthBytes = BitConverter.GetBytes(length);
-            stream.Write(lengthBytes, 0, 4);
-
-            // Read the array as a byte array efficently (almost like using a direct byte* to the uint array)
-            var span = MemoryMarshal.AsBytes<uint>(uintArray.AsSpan());
-            stream.Write(span);
+            var uintArray = list.ToArray();                      // allocate once
+            var byteSpan = MemoryMarshal.Cast<uint, byte>(uintArray);
+            var byteFrontier = new ReadOnlyMemory<byte>(byteSpan.ToArray()); // Make ReadOnlyMemory<byte> from byteSpan
+            return byteFrontier;
         }
 
-        public static List<uint> ReceiveUintArray(NetworkStream stream)
-        {
-            // recieve the length of the data
-            var lengthBytes = new byte[4];
-            if (stream.Read(lengthBytes, 0, 4) != 4) return null;
+        public static async Task FlushStreamAsync(INetworkStream stream) => await stream.FlushAsync();
 
-            int length = BitConverter.ToInt32(lengthBytes, 0);
-            if (length == -1) return null; // Termination signal
-
-
-            // allocate buffer and write to it like a byte array
-            var uintArray = new uint[length];
-            var byteSpan = MemoryMarshal.AsBytes<uint>(uintArray.AsSpan());
-
-            int bytesRead = 0;
-            while (bytesRead < byteSpan.Length)
-            {
-                int read = stream.Read(byteSpan.Slice(bytesRead));
-                if (read == 0) throw new EndOfStreamException();
-                bytesRead += read;
-            }
-
-            return new List<uint>(uintArray);
-        }
-
-        public static async Task SendUintArrayAsync(NetworkStream stream, List<uint> data)
+        public static async Task SendDataAsync(INetworkStream stream, ReadOnlyMemory<byte>? data)
         {
             if (data == null)
             {
@@ -67,54 +50,91 @@ namespace BFSAlgo.Distributed
                 return;
             }
 
-            var uintArray = data.ToArray();                      // allocate once
-            var byteSpan = MemoryMarshal.AsBytes(uintArray.AsSpan()); // span view over uint array
-            var byteMemory = new ReadOnlyMemory<byte>(byteSpan.ToArray()); // Make ReadOnlyMemory<byte> from byteSpan
-
             // Send length of data first so we know the amount to receive at the other end
-            var lengthBytes = BitConverter.GetBytes(uintArray.Length);
+            var lengthBytes = BitConverter.GetBytes(data.Value.Length);
             await stream.WriteAsync(lengthBytes, 0, 4);
-
-            await stream.WriteAsync(byteMemory);
+            await stream.WriteAsync(data.Value);
         }
 
-        public static async Task<List<uint>> ReceiveUintArrayAsync(NetworkStream stream, Stopwatch sw = null)
+        public static async Task SendGraphPartitionAsync(INetworkStream stream, List<uint> ownedNodes, List<uint>[] fullGraph)
+        {
+            using var ms = new MemoryStream();
+            using var writer = new BinaryWriter(ms);
+
+            writer.Write(ownedNodes.Count);
+
+            foreach (var node in ownedNodes)
+            {
+                var neighbors = fullGraph[node];
+                writer.Write(node);
+                writer.Write(neighbors.Count);
+                foreach (var neighbor in neighbors)
+                    writer.Write(neighbor);
+            }
+
+            var data = ms.ToArray();
+            await stream.WriteAsync(BitConverter.GetBytes(data.Length));
+            await stream.WriteAsync(data);
+        }
+
+        public static async Task<List<uint>> ReceiveUintArrayAsync(INetworkStream stream, Stopwatch sw = null)
         {
             // Read 4 bytes for the length first
             var lengthBytes = new byte[4];
-            int bytesRead = 0;
-            while (bytesRead < 4)
-            {
-                int read = await stream.ReadAsync(lengthBytes.AsMemory(bytesRead, 4 - bytesRead));
-                if (read == 0) throw new EndOfStreamException();
-                bytesRead += read;
-            }
+            await stream.ReadExactlyAsync(lengthBytes);
+            int totalLength = BitConverter.ToInt32(lengthBytes);
+            if (totalLength == -1) return null; // Termination signal
 
-            int length = BitConverter.ToInt32(lengthBytes, 0);
-            if (length == -1) return null; // Termination signal
+            sw?.Start();
 
-            var byteLength = length * sizeof(uint);
+            var buffer = new byte[totalLength].AsMemory();
+            await stream.ReadExactlyAsync(buffer);
+
+            var uintSpan = MemoryMarshal.Cast<byte, uint>(buffer.Span);
+            return uintSpan.ToArray().ToList();
+        }
+
+        public static async Task<byte[]> ReceiveByteArrayAsync(INetworkStream stream, Stopwatch sw = null)
+        {
+            // Read 4 bytes for the length first
+            var lengthBytes = new byte[4];
+            await stream.ReadExactlyAsync(lengthBytes);
+            int totalLength = BitConverter.ToInt32(lengthBytes);
+            if (totalLength == -1) return null; // Termination signal
 
             sw?.Start(); // start if not null
 
-            // Allocate space for the uint array
-            var byteMemory = new byte[byteLength].AsMemory();
+            var buffer = new byte[totalLength];
+            await stream.ReadExactlyAsync(buffer.AsMemory());
+            return buffer;
+        }
 
-            // Create a span view of the uint array as bytes
+        public static async Task<Dictionary<uint, List<uint>>> ReceiveGraphPartitionAsync(INetworkStream stream)
+        {
+            var lengthBytes = new byte[4];
+            await stream.ReadExactlyAsync(lengthBytes);
+            int totalLength = BitConverter.ToInt32(lengthBytes);
 
-            // Now receive exactly the correct number of bytes
-            bytesRead = 0;
-            while (bytesRead < byteLength)
+            var buffer = new byte[totalLength];
+            await stream.ReadExactlyAsync(buffer);
+
+            var dict = new Dictionary<uint, List<uint>>();
+            using var ms = new MemoryStream(buffer);
+            using var reader = new BinaryReader(ms);
+
+            int nodeCount = reader.ReadInt32();
+            for (int i = 0; i < nodeCount; i++)
             {
-                int read = await stream.ReadAsync(byteMemory.Slice(bytesRead));
-                if (read == 0) throw new EndOfStreamException();
-                bytesRead += read;
+                uint nodeId = reader.ReadUInt32();
+                int neighborCount = reader.ReadInt32();
+                var neighbors = new List<uint>(neighborCount);
+                for (int j = 0; j < neighborCount; j++)
+                    neighbors.Add(reader.ReadUInt32());
+
+                dict[nodeId] = neighbors;
             }
 
-            var uintSpan = MemoryMarshal.Cast<byte, uint>(byteMemory.Span);
-
-            // Done, convert to List<uint> and return
-            return uintSpan.ToArray().ToList();
+            return dict;
         }
     }
 }

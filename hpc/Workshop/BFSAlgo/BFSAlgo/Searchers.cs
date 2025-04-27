@@ -8,13 +8,34 @@ using System.Threading.Tasks;
 
 namespace BFSAlgo
 {
-    internal class Searchers
+    public class Searchers
     {
+        //public static void BFS_Sequential(List<uint>[] graph, uint startNode)
+        //{
+        //    var visited = new bool[graph.Length];
+        //    var queue = new Queue<uint>();
+        //    visited[startNode] = true;
+        //    queue.Enqueue(startNode);
+
+        //    while (queue.Count > 0)
+        //    {
+        //        long node = queue.Dequeue();
+        //        foreach (var neighbor in graph[node])
+        //        {
+        //            if (!visited[neighbor])
+        //            {
+        //                visited[neighbor] = true;
+        //                queue.Enqueue(neighbor);
+        //            }
+        //        }
+        //    }
+        //}
+
         public static void BFS_Sequential(List<uint>[] graph, uint startNode)
         {
-            var visited = new bool[graph.Length];
+            var visited = new Bitmap(graph.Length);
             var queue = new Queue<uint>();
-            visited[startNode] = true;
+            visited.Set(startNode);
             queue.Enqueue(startNode);
 
             while (queue.Count > 0)
@@ -22,9 +43,9 @@ namespace BFSAlgo
                 long node = queue.Dequeue();
                 foreach (var neighbor in graph[node])
                 {
-                    if (!visited[neighbor])
+                    if (!visited.Get(neighbor))
                     {
-                        visited[neighbor] = true;
+                        visited.Set(neighbor);
                         queue.Enqueue(neighbor);
                     }
                 }
@@ -33,7 +54,7 @@ namespace BFSAlgo
 
         public static void BFS_Parallel(List<uint>[] graph, uint startNode, int maxThreads)
         {
-            int numNodes = graph.Length;            
+            int numNodes = graph.Length;
             var visited = new int[numNodes]; // 0: not visited, 1: visited
             var currentFrontier = new ConcurrentQueue<uint>();
             currentFrontier.Enqueue(startNode);
@@ -114,9 +135,128 @@ namespace BFSAlgo
             }
         }
 
-        public static async Task BFS_Distributed(List<uint>[] graph, uint startNode, int numWorkers, bool evenPartitioning)
+        public static void BFS_Parallel_V3(List<uint>[] graph, uint startNode, int maxThreads)
         {
-            var coordinator = new Coordinator(graph, startNode, numWorkers, evenPartitioning);
+            int numNodes = graph.Length;
+            var visited = new Bitmap(numNodes); // 0: not visited, 1: visited
+            visited.Set(startNode);
+            
+            var currentFrontier = new Queue<uint>();
+            currentFrontier.Enqueue(startNode);
+
+            var options = new ParallelOptions { MaxDegreeOfParallelism = maxThreads }; // e.g., 4
+
+            object _lock = new();
+
+            while (currentFrontier.Count > 0)
+            {                
+                var frontierArray = currentFrontier.ToArray();
+                currentFrontier.Clear();
+
+                Parallel.ForEach(frontierArray, options, node =>
+                {
+                    foreach (var neighbor in graph[node])
+                    {
+                        // Atomically mark visited
+                        if (!visited.Get(neighbor))
+                        {
+                            lock (_lock)
+                            {
+                                visited.Set(neighbor);
+                                currentFrontier.Enqueue(neighbor);
+                            }
+                        }
+                    }
+                });
+
+                //currentFrontier = nextFrontier;
+            }
+        }
+
+        public static void BFS_Parallel_V3_noLock(List<uint>[] graph, uint startNode, int maxThreads)
+        {
+            int numNodes = graph.Length;
+            var visited = new Bitmap(numNodes); // 0: not visited, 1: visited
+            visited.Set(startNode);
+
+            var currentFrontier = new Queue<uint>();
+            currentFrontier.Enqueue(startNode);
+
+            var options = new ParallelOptions { MaxDegreeOfParallelism = maxThreads }; // e.g., 4
+
+            //object _lock = new();
+
+            while (currentFrontier.Count > 0)
+            {
+                var frontierArray = currentFrontier.ToArray();
+                currentFrontier.Clear();
+
+                Parallel.ForEach(frontierArray, options, node =>
+                {
+                    foreach (var neighbor in graph[node])
+                    {
+                        // Atomically mark visited
+                        if (!visited.Get(neighbor))
+                        {
+                            //lock (_lock)
+                            //{
+                                visited.Set(neighbor);
+                                currentFrontier.Enqueue(neighbor);
+                            //}
+                        }
+                    }
+                });
+
+                //currentFrontier = nextFrontier;
+            }
+        }
+
+        public static void BFS_Parallel_V3_Partition(List<uint>[] graph, uint startNode, int maxThreads)
+        {
+            int numNodes = graph.Length;
+            var visited = new Bitmap(numNodes); // 0: not visited, 1: visited
+            visited.Set(startNode);
+
+            var currentFrontier = new Queue<uint>();
+            currentFrontier.Enqueue(startNode);
+
+            var options = new ParallelOptions { MaxDegreeOfParallelism = maxThreads }; // e.g., 4
+
+            object _lock = new();
+
+            while (currentFrontier.Count > 0)
+            {
+                var frontierArray = currentFrontier.ToArray();
+                currentFrontier.Clear();
+
+                var parts = Partitioner.Create(frontierArray).GetPartitions(maxThreads);
+
+                Parallel.ForEach(parts, nodes =>
+                {
+                    while (nodes.MoveNext())
+                    {
+                        foreach (var neighbor in graph[nodes.Current])
+                        {
+                            // Atomically mark visited
+                            if (!visited.Get(neighbor))
+                            {
+                                lock (_lock)
+                                {
+                                    visited.Set(neighbor);
+                                    currentFrontier.Enqueue(neighbor);
+                                }
+                            }
+                        }
+                    }
+                });
+
+                //currentFrontier = nextFrontier;
+            }
+        }
+
+        public static async Task BFS_Distributed(List<uint>[] graph, uint startNode, int numWorkers)
+        {
+            var coordinator = new Coordinator(graph, startNode, numWorkers);
             await coordinator.Run();
         }
     }

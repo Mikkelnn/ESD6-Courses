@@ -1,24 +1,34 @@
 ﻿
+using CommandLine;
+using System.Collections;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace BFSAlgo.Distributed
 {   
     public sealed class Bitmap
     {
         private readonly ulong[] bits;
-        public int Size { get; }
+        public int ByteSize { get; }
+        public int MaxNodeCount { get; }
 
-        public Bitmap(int size)
+        public ReadOnlyMemory<byte> AsReadOnlyMemory => new ReadOnlyMemory<byte>(MemoryMarshal.AsBytes(bits.AsSpan()).ToArray());
+
+        public Bitmap(int maxNodeCount)
         {
-            Size = size;
-            bits = new ulong[(size + 63) / 64]; // 64 bits per ulong
+            this.MaxNodeCount = maxNodeCount;            
+            bits = new ulong[(maxNodeCount + 63) / 64]; // 64 bits per ulong
+            ByteSize = bits.Length * sizeof(ulong);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(uint index)
         {
-            // Below is the "easy" way to bitmap, but as 8 == 2^3 we can use bitwise operations - way faster!
-            //bits[index / 8] |= (byte)(1 << (index % 8));
+            if (index >= MaxNodeCount)
+                throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} is out of bounds for bitmap of size {MaxNodeCount}.");
+
+            // Below is the "easy" way to bitmap, but as 64 == 2^6 we can use bitwise operations - way faster!
+            //bits[index / 64] |= (1UL << (index % 64));
 
             int arrayIndex = (int)(index >> 6);       // divide by 64
             int bitPosition = (int)(index & 63);       // modulo 64
@@ -28,6 +38,9 @@ namespace BFSAlgo.Distributed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Get(uint index)
         {
+            if (index >= MaxNodeCount)
+                throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} is out of bounds for bitmap of size {MaxNodeCount}.");
+
             int arrayIndex = (int)(index >> 6);
             int bitPosition = (int)(index & 63);
             return (bits[arrayIndex] & (1UL << bitPosition)) != 0;
@@ -45,18 +58,28 @@ namespace BFSAlgo.Distributed
             }
         }
 
-        public byte[] ToByteArray()
+        public void OverwriteFromByteArray(byte[] bytes)
         {
-            var bytes = new byte[bits.Length * 8];
-            Buffer.BlockCopy(bits, 0, bytes, 0, bytes.Length);
-            return bytes;
+            if (bytes.Length != ByteSize) throw new ArgumentException($"Input size {bytes}B does not match current size {ByteSize}B!");
+            Buffer.BlockCopy(bytes, 0, bits, 0, bytes.Length);
         }
 
-        public static Bitmap FromByteArray(byte[] bytes, int size)
+        public bool IsAllSet()
         {
-            var bmp = new Bitmap(size);
-            Buffer.BlockCopy(bytes, 0, bmp.bits, 0, bytes.Length);
-            return bmp;
+            int lastNotFilledBits = 64 - (MaxNodeCount % 64); // nodeCount does not fill entire ulong
+
+            for (int i = 0, lastIdx = bits.Length - 1; i <= lastIdx; i++)
+            {
+                // last is special case
+                if (i == lastIdx && lastNotFilledBits != 64)
+                {
+                    ulong mask = ulong.MaxValue >> lastNotFilledBits;
+                    if (bits[i] != mask) return false;
+                }
+                else if (bits[i] != ulong.MaxValue) return false;
+            }
+
+            return true;
         }
     }
 
