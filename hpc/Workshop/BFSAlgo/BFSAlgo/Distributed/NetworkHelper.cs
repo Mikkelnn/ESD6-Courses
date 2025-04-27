@@ -105,7 +105,7 @@ namespace BFSAlgo.Distributed
             await stream.WriteAsync(data);
         }
 
-        public static async Task<List<uint>> ReceiveUintArrayAsync(INetworkStream stream, Stopwatch sw = null)
+        public static async Task<uint[]> ReceiveUintArrayAsync(INetworkStream stream, Stopwatch sw = null)
         {
             // Read 4 bytes for the length first
             var lengthBytes = new byte[4];
@@ -119,7 +119,8 @@ namespace BFSAlgo.Distributed
             await stream.ReadExactlyAsync(buffer);
 
             var uintSpan = MemoryMarshal.Cast<byte, uint>(buffer.Span);
-            return uintSpan.ToArray().ToList();
+            //return uintSpan.ToArray().ToList();
+            return uintSpan.ToArray();
         }
 
         public static async Task<byte[]> ReceiveByteArrayAsync(INetworkStream stream, Stopwatch sw = null)

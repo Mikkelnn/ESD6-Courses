@@ -47,6 +47,23 @@ namespace BFSAlgo.Distributed
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool SetIfNot(uint index)
+        {
+            if (index >= MaxNodeCount)
+                throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} is out of bounds for bitmap of size {MaxNodeCount}.");
+
+            int arrayIndex = (int)(index >> 6);       // divide by 64
+            int bitPosition = (int)(index & 63);       // modulo 64
+            ulong mask = 1UL << bitPosition;
+
+            if ((bits[arrayIndex] & mask) != 0) return false;
+            
+            bits[arrayIndex] |= mask;
+
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Or(Bitmap other)
         {
             if (other.bits.Length != bits.Length)

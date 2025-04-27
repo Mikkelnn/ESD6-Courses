@@ -61,12 +61,15 @@ namespace BFSAlgo.Distributed
                 {
                     foreach (var node in results[i])
                     {
-                        if (!visitedGlobal.Get(node))
-                        {
-                            visitedGlobal.Set(node);
+                        if (!visitedGlobal.SetIfNot(node))
                             partitionedFrontier[node % numWorkers].Add(node);
-                            //frontier.Add(node);
-                        }
+
+                        //if (!visitedGlobal.Get(node))
+                        //{
+                        //    visitedGlobal.Set(node);
+                        //    partitionedFrontier[node % numWorkers].Add(node);
+                        //    //frontier.Add(node);
+                        //}
                     }
                 }
             }
@@ -89,13 +92,13 @@ namespace BFSAlgo.Distributed
 
         private static async Task SendNewFrontier(INetworkStream[] streams, Bitmap visitedGlobal, List<uint>[] frontier)
         {
-            var currentGlobalVisited = visitedGlobal.AsReadOnlyMemory;
+            //var currentGlobalVisited = visitedGlobal.AsReadOnlyMemory;
             //var frontierData = frontier.ToReadOnlyMemory();
 
             var sendTasks = streams.Select(async (stream, i) =>
             {
                 await NetworkHelper.SendDataAsync(stream, frontier[i].ToReadOnlyMemory());
-                await NetworkHelper.SendDataAsync(stream, currentGlobalVisited);
+                //await NetworkHelper.SendDataAsync(stream, currentGlobalVisited);
                 await NetworkHelper.FlushStreamAsync(stream);
             });
             await Task.WhenAll(sendTasks);  // Wait for all sends to complete
