@@ -23,12 +23,18 @@ namespace Tests.Integration
                 []
             };
 
-            int port = 5000;
-            var worker = new Worker(0, port);
+            // setup tcp server at any available port
+            var listener = new TcpListener(IPAddress.Loopback, port: 0); 
+            listener.Start();
+            var serverEndpoint = (IPEndPoint)listener.LocalEndpoint;
 
+            // initiate worker
+            var worker = new Worker(serverEndpoint.Address, serverEndpoint.Port);
             var workerTask = Task.Run(worker.Start);
 
-            var networkStream = await NetworkStreamWrapper.GetCoordinatorInstance(IPAddress.Loopback, port);
+            // wait for worker connection
+            var tcpClient = await listener.AcceptTcpClientAsync();
+            var networkStream = new NetworkStreamWrapper(tcpClient);
 
             // Act
             // 0. Send partial graph

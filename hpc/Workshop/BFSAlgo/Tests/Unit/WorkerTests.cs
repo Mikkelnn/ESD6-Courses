@@ -42,7 +42,7 @@ namespace Tests.Unit
             // Simulate termination (null frontier)
             mockStream.AddDataToRead(BitConverter.GetBytes(-1)); // -1 signals termination
 
-            var worker = new Worker(0, 0, mockStream);
+            var worker = new Worker(mockStream);
 
             // Act
             await worker.Start();

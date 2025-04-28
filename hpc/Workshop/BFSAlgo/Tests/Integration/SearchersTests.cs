@@ -94,7 +94,7 @@ namespace Tests.Integration
         public void BFS_Distributed_Should_Visit_All_Reachable_Nodes()
         {
             var graph = BuildGraph((0, 1), (1, 2), (2, 3));
-            int millisecondsTimeout = (int)TimeSpan.FromSeconds(1).TotalMilliseconds;
+            int millisecondsTimeout = (int)TimeSpan.FromSeconds(5).TotalMilliseconds;
 
             // Act
             var visited = Searchers.BFS_Distributed(graph, 0, numWorkers: 2, millisecondsTimeout);
@@ -110,7 +110,7 @@ namespace Tests.Integration
         public void BFS_Distributed_Should_Handle_SingleNodeGraph()
         {
             var graph = new List<uint>[1] { new List<uint>() };
-            int millisecondsTimeout = (int)TimeSpan.FromSeconds(1).TotalMilliseconds;
+            int millisecondsTimeout = (int)TimeSpan.FromSeconds(5).TotalMilliseconds;
 
             // Act
             var visited = Searchers.BFS_Distributed(graph, 0, numWorkers: 1, millisecondsTimeout);

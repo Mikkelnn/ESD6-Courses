@@ -22,29 +22,27 @@ namespace BFSAlgo.Distributed
         void Close();
     }
 
-    public class NetworkStreamWrapper(Socket socket) : NetworkStream(socket, true), INetworkStream
+    public class NetworkStreamWrapper : NetworkStream, INetworkStream
     {
         private TcpClient tcpClient;
 
-        public static async Task<NetworkStreamWrapper> GetCoordinatorInstance(IPAddress address, int port)
+        public NetworkStreamWrapper(TcpClient tcpClient) : base(tcpClient.Client, true)
+        {
+            this.tcpClient = tcpClient;
+        }
+
+        /// <summary>
+        /// Connect to a coordinator at <paramref name="address"/> : <paramref name="port"/>
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        /// <returns></returns>
+        public static async Task<NetworkStreamWrapper> GetWorkerInstanceAsync(IPAddress address, int port)
         {
             var tcpClient = new TcpClient();
             await tcpClient.ConnectAsync(address, port);
 
-            //tcpClient.Connect(address, port);
-
-            var instance = new NetworkStreamWrapper(tcpClient.Client);
-            instance.tcpClient = tcpClient;
-            return instance;
-        }
-
-        public static async Task<NetworkStreamWrapper> GetWorkerInstanceAsync(IPAddress address, int port)
-        {
-            var listener = new TcpListener(address, port);
-            listener.Start();
-
-            var tcpClient = await listener.AcceptTcpClientAsync();
-            var instance = new NetworkStreamWrapper(tcpClient.Client);
+            var instance = new NetworkStreamWrapper(tcpClient);
             instance.tcpClient = tcpClient;
             return instance;
         }
@@ -52,7 +50,7 @@ namespace BFSAlgo.Distributed
         public override void Close()
         {
             base.Close();
-            tcpClient?.Close();
+            tcpClient.Close();
         }
     }
 

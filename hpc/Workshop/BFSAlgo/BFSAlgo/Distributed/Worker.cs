@@ -1,32 +1,34 @@
 ﻿using System.Net;
 using System.Collections.Concurrent;
+using System.IO;
 
 namespace BFSAlgo.Distributed
 {
     public class Worker
     {
-        private readonly int id;
-        private Bitmap visited;
-        private Dictionary<uint, uint[]> partialGraph;
-        private readonly int port;
-
+        private readonly IPAddress coordinatorAddress;
+        private readonly int coordinatorPort;
         private INetworkStream stream;
 
-        public Worker(int id, int port)
+        private Bitmap visited;
+        private Dictionary<uint, uint[]> partialGraph;
+
+
+        public Worker(IPAddress coordinatorAddress, int coordinatorPort)
         {
-            this.id = id;
-            this.port = port;
+            this.coordinatorAddress = coordinatorAddress;
+            this.coordinatorPort = coordinatorPort;
         }
 
         // Constructor for DI/testing
-        public Worker(int id, int port, INetworkStream stream) : this(id, port)
+        public Worker(INetworkStream stream)
         {
             this.stream = stream;
         }
 
         public async Task Start()
         {
-            stream ??= await NetworkStreamWrapper.GetWorkerInstanceAsync(IPAddress.Loopback, port);
+            stream ??= await NetworkStreamWrapper.GetWorkerInstanceAsync(coordinatorAddress, coordinatorPort);
 
             (this.partialGraph, var totalNodeCount) = await NetworkHelper.ReceiveGraphPartitionAsync(stream);
 

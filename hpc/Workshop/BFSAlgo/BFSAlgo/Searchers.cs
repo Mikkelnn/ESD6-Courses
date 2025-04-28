@@ -1,4 +1,5 @@
 ﻿using BFSAlgo.Distributed;
+using System.Net;
 
 namespace BFSAlgo
 {
@@ -95,11 +96,34 @@ namespace BFSAlgo
 
         public static Bitmap BFS_Distributed(List<uint>[] graph, uint startNode, int numWorkers, int millisecondsTimeout = -1)
         {
-            var coordinator = new Coordinator(graph, startNode, numWorkers);
-            var visited = coordinator.RunAsync();
+            IPAddress address = IPAddress.Loopback;
 
-            bool timeout = !visited.Wait(millisecondsTimeout);
-            if (timeout) throw new Exception("Timeout reached!");
+            // start server
+            var coordinator = new Coordinator(address, port: 0); // use next available port
+            _ = coordinator.StartAsync();
+
+            int port = coordinator.ListeningOn.Port;
+
+            // spawn workers
+            var workerTasks = new Task[numWorkers];
+            for (int i = 0; i < numWorkers; i++)
+            {
+                int id = i;
+                workerTasks[i] = Task.Run(async () =>
+                {
+                    var worker = new Worker(address, port);
+                    await worker.Start();
+                });
+            }
+
+            // wait for workers to connect
+            bool timeout = Task.Run(() => { while (coordinator.ConnectedWorkers < numWorkers) { } }).Wait(millisecondsTimeout);
+            if (timeout) throw new Exception("Timeout waiting for workers!");
+
+            var visited = coordinator.RunAsync(graph, startNode);
+
+            timeout = !visited.Wait(millisecondsTimeout);
+            if (timeout) throw new Exception("Timeout searching!");
 
             return visited.Result;
         }
