@@ -4,7 +4,7 @@ namespace BFSAlgo
 {
     public class Searchers
     {
-        public static void BFS_Sequential(List<uint>[] graph, uint startNode)
+        public static Bitmap BFS_Sequential(List<uint>[] graph, uint startNode)
         {
             var visited = new Bitmap(graph.Length);
             var queue = new Queue<uint>();
@@ -20,6 +20,8 @@ namespace BFSAlgo
                         queue.Enqueue(neighbor);                    
                 }
             }
+
+            return visited;
         }
 
         //public static void BFS_Parallel(List<uint>[] graph, uint startNode, int maxThreads)
@@ -53,7 +55,7 @@ namespace BFSAlgo
         //    }
         //}
 
-        public static void BFS_Parallel(List<uint>[] graph, uint startNode, int maxThreads)
+        public static Bitmap BFS_Parallel(List<uint>[] graph, uint startNode, int maxThreads)
         {
             int numNodes = graph.Length;
             var visited = new Bitmap(numNodes); // 0: not visited, 1: visited
@@ -87,12 +89,19 @@ namespace BFSAlgo
                     }
                 });
             }
+
+            return visited;
         }
 
-        public static async Task BFS_Distributed(List<uint>[] graph, uint startNode, int numWorkers)
+        public static Bitmap BFS_Distributed(List<uint>[] graph, uint startNode, int numWorkers, int millisecondsTimeout = -1)
         {
             var coordinator = new Coordinator(graph, startNode, numWorkers);
-            await coordinator.Run();
+            var visited = coordinator.RunAsync();
+
+            bool timeout = !visited.Wait(millisecondsTimeout);
+            if (timeout) throw new Exception("Timeout reached!");
+
+            return visited.Result;
         }
     }
 }

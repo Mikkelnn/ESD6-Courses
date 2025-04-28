@@ -15,11 +15,11 @@ public class Program
         var loadedGraph = GraphService.LoadGraph("g2_adjacency_list.bin");
         Stopwatch sw = Stopwatch.StartNew();
         //Searchers.BFS_Sequential(loadedGraph, 0);
-        await Searchers.BFS_Distributed(loadedGraph, 0, numWorkers: 12);
+        var visited = Searchers.BFS_Distributed(loadedGraph, 0, numWorkers: 12);
         //Searchers.BFS_Parallel_V3(loadedGraph, 0, 12);
         //Searchers.BFS_Parallel_V3_Partition(loadedGraph, 0, 4);
         sw.Stop();
-        Console.WriteLine($"Finished in: {sw.ElapsedMilliseconds} ms");
+        Console.WriteLine($"Finished in: {sw.ElapsedMilliseconds} ms, all visited: {visited.IsAllSet()}");
 
 
         //var summary_g1 = BenchmarkRunner.Run<BFSBenchmarks_G1>();
@@ -86,7 +86,7 @@ public class BFSBenchmarks_G1
     [Arguments(8)]
     [Arguments(12)]
     [Arguments(16)]
-    public void Distributed(int numWorkers) => Searchers.BFS_Distributed(loadedGraph, 0, numWorkers).Wait();
+    public void Distributed(int numWorkers) => Searchers.BFS_Distributed(loadedGraph, 0, numWorkers);
 }
 
 [MemoryDiagnoser(false)]
@@ -119,7 +119,7 @@ public class BFSBenchmarks_G2
     [Arguments(8)]
     [Arguments(12)]
     //[Arguments(16)]
-    public void Distributed(int numWorkers) => Searchers.BFS_Distributed(loadedGraph, 0, numWorkers).Wait();
+    public void Distributed(int numWorkers) => Searchers.BFS_Distributed(loadedGraph, 0, numWorkers);
 }
 
 

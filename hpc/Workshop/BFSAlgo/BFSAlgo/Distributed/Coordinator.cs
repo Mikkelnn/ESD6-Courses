@@ -16,7 +16,7 @@ namespace BFSAlgo.Distributed
             this.numWorkers = numWorkers;
         }
 
-        public async Task Run()
+        public async Task<Bitmap> RunAsync()
         {
             // spawn workers and connect
             Task[] workerTasks = SpawnWorkers(numWorkers);
@@ -24,8 +24,7 @@ namespace BFSAlgo.Distributed
 
             List<uint>[] partitioned = GraphPartitioner.Partition(graph, numWorkers);
             await SendPartitions(streams, partitioned);
-            
-            //var frontier = new List<uint> { startNode };
+
             var visitedGlobal = new Bitmap(graph.Length);
             visitedGlobal.Set(startNode);
 
@@ -38,37 +37,25 @@ namespace BFSAlgo.Distributed
 
             while (partitionedFrontier.Any(x => x.Count != 0))
             {
-                // Broadcast frontier information
+                // Send frontier information to all workers
                 await SendNewFrontier(streams, visitedGlobal, partitionedFrontier);
 
                 for (int i = 0; i < partitionedFrontier.Length; i++)
                     partitionedFrontier[i].Clear();
-                //frontier.Clear();
 
-                var receiveTasks = streams.Select(s => NetworkHelper.ReceiveUintArrayAsync(s));
+                var receiveTasks = streams.Select(NetworkHelper.ReceiveUintArrayAsync);
                 var results = await Task.WhenAll(receiveTasks);  // Wait for all receives to complete
 
                 for (int i = 0; i < numWorkers; i++)
-                {
                     foreach (var node in results[i])
-                    {
-                        if (!visitedGlobal.SetIfNot(node))
+                        if (visitedGlobal.SetIfNot(node))
                             partitionedFrontier[node % numWorkers].Add(node);
-
-                        //if (!visitedGlobal.Get(node))
-                        //{
-                        //    visitedGlobal.Set(node);
-                        //    partitionedFrontier[node % numWorkers].Add(node);
-                        //    //frontier.Add(node);
-                        //}
-                    }
-                }
             }
 
             // Tell workers to stop
             await TerminateWorkers(workerTasks, streams);
 
-           //var isAllSet = visitedGlobal.IsAllSet();
+           return visitedGlobal;
         }
 
         private async Task SendPartitions(INetworkStream[] streams, List<uint>[] partitioned)

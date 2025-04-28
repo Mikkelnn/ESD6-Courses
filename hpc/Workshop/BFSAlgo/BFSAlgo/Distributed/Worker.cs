@@ -87,34 +87,34 @@ namespace BFSAlgo.Distributed
             return nextFrontier;
         }
 
-        private List<uint> SearchFrontierParallel(List<uint> frontier, int maxThreads)
-        {
-            ConcurrentBag<uint> nextFrontier = new ConcurrentBag<uint>();
-            if (frontier.Count == 0) return nextFrontier.ToList();
+        //private List<uint> SearchFrontierParallel(List<uint> frontier, int maxThreads)
+        //{
+        //    ConcurrentBag<uint> nextFrontier = new ConcurrentBag<uint>();
+        //    if (frontier.Count == 0) return nextFrontier.ToList();
 
 
-            var options = new ParallelOptions { MaxDegreeOfParallelism = maxThreads }; // e.g., 4
-            //object _lock = new();
+        //    var options = new ParallelOptions { MaxDegreeOfParallelism = maxThreads }; // e.g., 4
+        //    //object _lock = new();
 
 
-            Parallel.ForEach(frontier, options, node =>
-            {
-                //if (!partialGraph.TryGetValue(node, out var neighbors)) return;
+        //    Parallel.ForEach(frontier, options, node =>
+        //    {
+        //        //if (!partialGraph.TryGetValue(node, out var neighbors)) return;
 
-                var neighbors = partialGraph[node];
+        //        var neighbors = partialGraph[node];
 
-                for (int i = 0, length = neighbors.Length; i < length; i++)
-                {
-                    uint neighbor = neighbors[i];
+        //        for (int i = 0, length = neighbors.Length; i < length; i++)
+        //        {
+        //            uint neighbor = neighbors[i];
 
-                    // Atomically mark visited
-                    if (visited.SetIfNot(neighbor))
-                        nextFrontier.Add(neighbor);                    
-                }
-            });
+        //            // Atomically mark visited
+        //            if (visited.SetIfNot(neighbor))
+        //                nextFrontier.Add(neighbor);                    
+        //        }
+        //    });
 
-            return nextFrontier.ToList();
+        //    return nextFrontier.ToList();
 
-        }
+        //}
     }
 }

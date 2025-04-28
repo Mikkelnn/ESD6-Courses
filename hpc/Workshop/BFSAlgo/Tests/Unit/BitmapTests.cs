@@ -49,8 +49,8 @@ namespace Tests.Unit
         {
             var bitmap = new Bitmap(128);
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => bitmap.Set(128)); // valid range is 0..127
-            Assert.Throws<ArgumentOutOfRangeException>(() => bitmap.Set(1000));
+            Assert.Throws<IndexOutOfRangeException>(() => bitmap.Set(128)); // valid range is 0..127
+            Assert.Throws<IndexOutOfRangeException>(() => bitmap.Set(1000));
         }
 
         [Fact]
@@ -58,8 +58,8 @@ namespace Tests.Unit
         {
             var bitmap = new Bitmap(128);
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => bitmap.Get(128));  // valid range is 0..127
-            Assert.Throws<ArgumentOutOfRangeException>(() => bitmap.Get(999));
+            Assert.Throws<IndexOutOfRangeException>(() => bitmap.Get(128));  // valid range is 0..127
+            Assert.Throws<IndexOutOfRangeException>(() => bitmap.Get(999));
         }
 
         [Fact]
@@ -124,8 +124,8 @@ namespace Tests.Unit
         {
             var bitmap = new Bitmap(128);
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => bitmap.SetIfNot(128));  // valid range is 0..127
-            Assert.Throws<ArgumentOutOfRangeException>(() => bitmap.SetIfNot(999));
+            Assert.Throws<IndexOutOfRangeException>(() => bitmap.SetIfNot(128));  // valid range is 0..127
+            Assert.Throws<IndexOutOfRangeException>(() => bitmap.SetIfNot(999));
         }
 
         [Fact]

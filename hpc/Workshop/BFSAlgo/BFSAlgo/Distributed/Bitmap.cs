@@ -22,7 +22,7 @@ namespace BFSAlgo.Distributed
         public void Set(uint index)
         {
             if (index >= MaxNodeCount)
-                throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} is out of bounds for bitmap of size {MaxNodeCount}.");
+                throw new IndexOutOfRangeException($"Index {index} is out of bounds for bitmap of size {MaxNodeCount}.");
 
             // Below is the "easy" way to bitmap, but as 64 == 2^6 we can use bitwise operations - way faster!
             //bits[index / 64] |= (1UL << (index % 64));
@@ -36,7 +36,7 @@ namespace BFSAlgo.Distributed
         public bool Get(uint index)
         {
             if (index >= MaxNodeCount)
-                throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} is out of bounds for bitmap of size {MaxNodeCount}.");
+                throw new IndexOutOfRangeException($"Index {index} is out of bounds for bitmap of size {MaxNodeCount}.");
 
             int arrayIndex = (int)(index >> 6);
             int bitPosition = (int)(index & 63);
@@ -48,12 +48,12 @@ namespace BFSAlgo.Distributed
         /// </summary>
         /// <param name="index"></param>
         /// <returns><see langword="false"/> if the index is already set, and <see langword="true"/> if it was set</returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SetIfNot(uint index)
         {
             if (index >= MaxNodeCount)
-                throw new ArgumentOutOfRangeException(nameof(index), $"Index {index} is out of bounds for bitmap of size {MaxNodeCount}.");
+                throw new IndexOutOfRangeException($"Index {index} is out of bounds for bitmap of size {MaxNodeCount}.");
 
             int arrayIndex = (int)(index >> 6);       // divide by 64
             int bitPosition = (int)(index & 63);       // modulo 64
