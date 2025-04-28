@@ -1,10 +1,4 @@
 ﻿using BFSAlgo.Distributed;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BFSAlgo
 {
@@ -12,8 +6,6 @@ namespace BFSAlgo
     {
         public static void BFS_Sequential(List<uint>[] graph, uint startNode)
         {
-            GC.TryStartNoGCRegion(1_073_741_824L * 5);
-
             var visited = new Bitmap(graph.Length);
             var queue = new Queue<uint>();
             visited.Set(startNode);
@@ -24,16 +16,10 @@ namespace BFSAlgo
                 long node = queue.Dequeue();
                 foreach (var neighbor in graph[node])
                 {
-                    if (!visited.Get(neighbor))
-                    {
-                        visited.Set(neighbor);
-                        queue.Enqueue(neighbor);
-                    }
+                    if (visited.SetIfNot(neighbor))
+                        queue.Enqueue(neighbor);                    
                 }
             }
-
-            GC.EndNoGCRegion();
-            GC.Collect();
         }
 
         //public static void BFS_Parallel(List<uint>[] graph, uint startNode, int maxThreads)
@@ -69,8 +55,6 @@ namespace BFSAlgo
 
         public static void BFS_Parallel(List<uint>[] graph, uint startNode, int maxThreads)
         {
-            GC.TryStartNoGCRegion(1_073_741_824L * 5);
-
             int numNodes = graph.Length;
             var visited = new Bitmap(numNodes); // 0: not visited, 1: visited
             visited.Set(startNode);
@@ -103,20 +87,12 @@ namespace BFSAlgo
                     }
                 });
             }
-
-            GC.EndNoGCRegion();
-            GC.Collect();
         }
 
         public static async Task BFS_Distributed(List<uint>[] graph, uint startNode, int numWorkers)
         {
-            GC.TryStartNoGCRegion(1_073_741_824L * 10);
-
             var coordinator = new Coordinator(graph, startNode, numWorkers);
             await coordinator.Run();
-
-            GC.EndNoGCRegion();
-            GC.Collect();
         }
     }
 }

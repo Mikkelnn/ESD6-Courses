@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Net;
-using System.Threading;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System.Net;
 using System.Collections.Concurrent;
 
 namespace BFSAlgo.Distributed
@@ -40,7 +34,7 @@ namespace BFSAlgo.Distributed
 
             await RunMainLoop();
 
-            stream?.Close();
+            stream.Close();
         }
 
         private async Task RunMainLoop()
@@ -73,7 +67,7 @@ namespace BFSAlgo.Distributed
 
                 foreach (var neighbor in neighbors)
                 {
-                    if (!visited.SetIfNot(neighbor))
+                    if (visited.SetIfNot(neighbor))
                         nextFrontier.Add(neighbor);
                 }
             }
@@ -114,10 +108,8 @@ namespace BFSAlgo.Distributed
                     uint neighbor = neighbors[i];
 
                     // Atomically mark visited
-                    if (!visited.SetIfNot(neighbor))
-                    {
-                        nextFrontier.Add(neighbor);
-                    }
+                    if (visited.SetIfNot(neighbor))
+                        nextFrontier.Add(neighbor);                    
                 }
             });
 

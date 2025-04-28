@@ -63,6 +63,72 @@ namespace Tests.Unit
         }
 
         [Fact]
+        public void SetIfNot_ShouldReturnSetForNewBitsCorrrect()
+        {
+            // Setup
+            var bitmap = new Bitmap(64);
+            
+            // Act
+            bitmap.SetIfNot(32);
+
+            // Assert
+            Assert.True(bitmap.Get(32));
+        }
+
+        [Fact]
+        public void SetIfNot_ShouldReturnTrueForNewBitsSet()
+        {
+            // Setup
+            var bitmap = new Bitmap(64);
+
+            // Act
+            bool wasSet = bitmap.SetIfNot(32);
+
+            // Assert
+            Assert.True(wasSet);
+        }
+
+        [Fact]
+        public void SetIfNot_ShouldReturnFalseForAlreadySetBits()
+        {
+            // Setup
+            var bitmap = new Bitmap(64);
+            bitmap.Set(32);
+
+            // Act
+            bool wasSet = bitmap.SetIfNot(32);
+
+            // Assert
+            Assert.False(wasSet);
+        }
+
+        [Fact]
+        public void SetIfNot_ShouldNotChangeIfNotSet()
+        {
+            // Setup
+            var bitmap = new Bitmap(64);
+            bitmap.Set(32);
+
+            var expected = new Bitmap(64);
+            expected.Set(32);
+
+            // Act
+            bitmap.SetIfNot(32);
+
+            // Assert
+            Assert.Equal(expected.AsReadOnlyMemory, bitmap.AsReadOnlyMemory);
+        }
+
+        [Fact]
+        public void SetIfNOt_ShouldThrow_WhenIndexOutOfRange()
+        {
+            var bitmap = new Bitmap(128);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => bitmap.SetIfNot(128));  // valid range is 0..127
+            Assert.Throws<ArgumentOutOfRangeException>(() => bitmap.SetIfNot(999));
+        }
+
+        [Fact]
         public void Or_ShouldCombineTwoBitmapsCorrectly()
         {
             var bitmap1 = new Bitmap(128);
@@ -151,6 +217,22 @@ namespace Tests.Unit
         public void IsAllSet_ShouldReturnFalseWhenNotAllBitsAreSet()
         {
             var bitmap = new Bitmap(128);
+
+            for (uint i = 0; i < bitmap.MaxNodeCount - 1; i++)
+            {
+                bitmap.Set(i);
+            }
+
+            Assert.False(bitmap.IsAllSet());
+        }
+
+        [Fact]
+        public void IsAllSet_ShouldReturnFalseWhenNotAllBitsAreSetWhenInternalMotFilled()
+        {
+            // test with size that result in internal not filled
+            // this is done as 129 is the first bit in the 3. ulong internally
+            // we should be able to handle this
+            var bitmap = new Bitmap(129);
 
             for (uint i = 0; i < bitmap.MaxNodeCount - 1; i++)
             {

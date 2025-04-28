@@ -1,7 +1,4 @@
-﻿
-using CommandLine;
-using System.Collections;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace BFSAlgo.Distributed
@@ -46,6 +43,12 @@ namespace BFSAlgo.Distributed
             return (bits[arrayIndex] & (1UL << bitPosition)) != 0;
         }
 
+        /// <summary>
+        /// Set a index if it is not set alredy.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns><see langword="false"/> if the index is already set, and <see langword="true"/> if it was set</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SetIfNot(uint index)
         {

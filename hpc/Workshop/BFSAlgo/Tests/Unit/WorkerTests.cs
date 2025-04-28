@@ -34,10 +34,10 @@ namespace Tests.Unit
             mockStream.AddDataToRead(BitConverter.GetBytes(0U));            // Frontier: [0]
 
             // Simulate receiving visited bitmap (all unvisited)
-            var bitmap = new Bitmap(fullGraph.Length);
-            var bitmapBytes = bitmap.AsReadOnlyMemory.ToArray();
-            mockStream.AddDataToRead(BitConverter.GetBytes(bitmapBytes.Length));
-            mockStream.AddDataToRead(bitmapBytes);
+            //var bitmap = new Bitmap(fullGraph.Length);
+            //var bitmapBytes = bitmap.AsReadOnlyMemory.ToArray();
+            //mockStream.AddDataToRead(BitConverter.GetBytes(bitmapBytes.Length));
+            //mockStream.AddDataToRead(bitmapBytes);
 
             // Simulate termination (null frontier)
             mockStream.AddDataToRead(BitConverter.GetBytes(-1)); // -1 signals termination
@@ -62,6 +62,9 @@ namespace Tests.Unit
 
             Assert.Contains(1U, frontier);
             Assert.Contains(2U, frontier);
+
+            Assert.True(mockStream.WriteQueueLength == 0, "Worker wrote more than expected!");
+            Assert.True(mockStream.ReadQueueLength == 0, "Worker did not read all data!");
         }
     }
 }

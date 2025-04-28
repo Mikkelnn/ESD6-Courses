@@ -12,6 +12,9 @@ namespace Tests.Mocks
         private readonly Queue<byte[]> _writeQueue = new Queue<byte[]>();
         private readonly Queue<byte[]> _readQueue = new Queue<byte[]>();
 
+        public int WriteQueueLength => _writeQueue.Count;
+        public int ReadQueueLength => _readQueue.Count;
+
         public void AddDataToRead(byte[] data) => _readQueue.Enqueue(data);
 
         public byte[] GetWrittenData() => _writeQueue.Dequeue();

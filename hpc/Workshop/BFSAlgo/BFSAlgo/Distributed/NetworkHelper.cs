@@ -105,15 +105,13 @@ namespace BFSAlgo.Distributed
             await stream.WriteAsync(data);
         }
 
-        public static async Task<uint[]> ReceiveUintArrayAsync(INetworkStream stream, Stopwatch sw = null)
+        public static async Task<uint[]> ReceiveUintArrayAsync(INetworkStream stream)
         {
             // Read 4 bytes for the length first
             var lengthBytes = new byte[4];
             await stream.ReadExactlyAsync(lengthBytes);
             int totalLength = BitConverter.ToInt32(lengthBytes);
             if (totalLength == -1) return null; // Termination signal
-
-            sw?.Start();
 
             var buffer = new byte[totalLength].AsMemory();
             await stream.ReadExactlyAsync(buffer);
@@ -123,15 +121,13 @@ namespace BFSAlgo.Distributed
             return uintSpan.ToArray();
         }
 
-        public static async Task<byte[]> ReceiveByteArrayAsync(INetworkStream stream, Stopwatch sw = null)
+        public static async Task<byte[]> ReceiveByteArrayAsync(INetworkStream stream)
         {
             // Read 4 bytes for the length first
             var lengthBytes = new byte[4];
             await stream.ReadExactlyAsync(lengthBytes);
             int totalLength = BitConverter.ToInt32(lengthBytes);
             if (totalLength == -1) return null; // Termination signal
-
-            sw?.Start(); // start if not null
 
             var buffer = new byte[totalLength];
             await stream.ReadExactlyAsync(buffer.AsMemory());
