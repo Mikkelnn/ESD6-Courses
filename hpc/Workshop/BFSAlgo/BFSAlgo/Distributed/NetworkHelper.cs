@@ -64,8 +64,11 @@ namespace BFSAlgo.Distributed
         public static ReadOnlyMemory<byte> ToReadOnlyMemory(this List<uint> list)
         {
             var uintArray = list.ToArray();                      // allocate once
-            var byteSpan = MemoryMarshal.Cast<uint, byte>(uintArray);
-            var byteFrontier = new ReadOnlyMemory<byte>(byteSpan.ToArray()); // Make ReadOnlyMemory<byte> from byteSpan
+            //var byteSpan = MemoryMarshal.Cast<uint, byte>(uintArray);
+            //var byteFrontier = new ReadOnlyMemory<byte>(byteSpan.ToArray()); // Make ReadOnlyMemory<byte> from byteSpan
+            int bytes = uintArray.Length * sizeof(uint);
+            var byteFrontier = new byte[bytes];
+            Buffer.BlockCopy(uintArray, 0, byteFrontier, 0, bytes);
             return byteFrontier;
         }
 
@@ -152,32 +155,36 @@ namespace BFSAlgo.Distributed
         }
 
         //public static async Task<(Dictionary<uint, uint[]>, int)> ReceiveGraphPartitionAsync(INetworkStream stream)
-        public static async Task<(uint[][], int)> ReceiveGraphPartitionAsync(INetworkStream stream)
+        public static async Task<(ArraySegment<uint>[], int)> ReceiveGraphPartitionAsync(INetworkStream stream)
         {
             var lengthBytes = new byte[4];
             await stream.ReadExactlyAsync(lengthBytes);
             int totalLength = BitConverter.ToInt32(lengthBytes);
 
-            //Stopwatch total = Stopwatch.StartNew();
+            Stopwatch total = Stopwatch.StartNew();
 
-            //Stopwatch alloc = Stopwatch.StartNew();
+            Stopwatch alloc = Stopwatch.StartNew();
             var buffer = ArrayPool<byte>.Shared.Rent(totalLength);
-            //alloc.Stop();
+            var uintData = new uint[totalLength / sizeof(uint)];                        
+            alloc.Stop();
 
             //Stopwatch network = Stopwatch.StartNew();
             await stream.ReadExactlyAsync(buffer.AsMemory(0, totalLength));
             //network.Stop();
 
-            //Stopwatch cast = Stopwatch.StartNew();
-            var uintData = MemoryMarshal.Cast<byte, uint>(buffer.AsSpan(0, totalLength));
-            //cast.Stop();
-            
+            Stopwatch cast = Stopwatch.StartNew();
+            //var uintData = MemoryMarshal.Cast<byte, uint>(buffer.AsSpan(0, totalLength));
+
+            Buffer.BlockCopy(buffer, 0, uintData, 0, totalLength);
+            ArrayPool<byte>.Shared.Return(buffer);
+            cast.Stop();
+
             int offset = 0;
 
             int totalNodeCount = (int)uintData[offset++];
             int nodeCount = (int)uintData[offset++];
 
-            var dict = new uint[totalNodeCount][];
+            var neighborSegments = new ArraySegment<uint>[totalNodeCount];
 
             Stopwatch parse = Stopwatch.StartNew();
             for (int i = 0; i < nodeCount; i++)
@@ -185,10 +192,10 @@ namespace BFSAlgo.Distributed
                 uint nodeId = uintData[offset++];
                 int neighborCount = (int)uintData[offset++];
 
-                var neighbors = new uint[neighborCount];
-                uintData.Slice(offset, neighborCount).CopyTo(neighbors);
+                //var neighbors = new uint[neighborCount];
+                //uintData.Slice(offset, neighborCount).CopyTo(neighbors);
 
-                dict[nodeId] = neighbors;
+                neighborSegments[nodeId] = new ArraySegment<uint>(uintData, offset, neighborCount);
 
                 offset += neighborCount;
             }
@@ -208,18 +215,18 @@ namespace BFSAlgo.Distributed
 
             //    dict[nodeId] = neighbors;
             //}
-            //parse.Stop();
+            parse.Stop();
 
-            ArrayPool<byte>.Shared.Return(buffer);
-            //total.Stop();
+            
+            total.Stop();
 
-            //Console.WriteLine($"Worker total: {total.ElapsedMilliseconds} ms, " /*+
-            //    $"Alloc: {alloc.ElapsedMilliseconds}, " +
-            //    $"Cast: {cast.ElapsedMilliseconds}, " +
-            //    $"Network: {network.ElapsedMilliseconds}, "*/ +
-            //    $"Parse: {parse.ElapsedMilliseconds}");
+            Console.WriteLine($"Worker total: {total.ElapsedMilliseconds} ms, " +
+                $"Alloc: {alloc.ElapsedMilliseconds}, " +
+                $"Cast: {cast.ElapsedMilliseconds}, " +
+                //$"Network: {network.ElapsedMilliseconds}, " +
+                $"Parse: {parse.ElapsedMilliseconds}");
 
-            return (dict, totalNodeCount);
+            return (neighborSegments, totalNodeCount);
         }
     }
 }

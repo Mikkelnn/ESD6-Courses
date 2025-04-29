@@ -13,7 +13,7 @@ namespace BFSAlgo.Distributed
 
         private Bitmap visited;
         //private Dictionary<uint, uint[]> partialGraph;
-        private uint[][] partialGraph;
+        private ArraySegment<uint>[] partialGraph;
 
 
         public Worker(IPAddress coordinatorAddress, int coordinatorPort)

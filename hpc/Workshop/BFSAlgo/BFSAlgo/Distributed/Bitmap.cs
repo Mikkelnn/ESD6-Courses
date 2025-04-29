@@ -13,9 +13,11 @@ namespace BFSAlgo.Distributed
 
         public Bitmap(int maxNodeCount)
         {
-            this.MaxNodeCount = maxNodeCount;            
-            bits = new ulong[(maxNodeCount + 63) / 64]; // 64 bits per ulong
-            ByteSize = bits.Length * sizeof(ulong);
+            this.MaxNodeCount = maxNodeCount;
+            //int uLongCount = (maxNodeCount + 63) / 64;
+            int uLongCount = (maxNodeCount + 63) >> 6; // ">> 6 is dividing by 64"
+            ByteSize = uLongCount * sizeof(ulong);
+            bits = new ulong[uLongCount]; // 64 bits per ulong
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
