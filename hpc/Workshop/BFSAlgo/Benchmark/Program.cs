@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using BFSAlgo;
@@ -11,19 +12,24 @@ public class Program
     public static async Task Main(string[] args)
     {
         //GenerateGraphs();
-        Console.WriteLine("loading g2..");
-        var loadedGraph = GraphService.LoadGraph("g2_adjacency_list.bin");
-        Stopwatch sw = Stopwatch.StartNew();
+        //Console.WriteLine("loading g2..");
+        //var loadedGraph = GraphService.LoadGraph("g2_adjacency_list.bin");
+        //Console.WriteLine("Running searcher...");
+        //Stopwatch sw = Stopwatch.StartNew();
         //Searchers.BFS_Sequential(loadedGraph, 0);
-        var visited = Searchers.BFS_Distributed(loadedGraph, 0, numWorkers: 12);
+        //int timeout = -1; // (int)TimeSpan.FromSeconds(10).TotalMilliseconds
+
+        //var oldMe = GCSettings.LatencyMode;
+        //GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        //var visited = Searchers.BFS_Distributed(loadedGraph, 0, numWorkers: 12, timeout);
         //Searchers.BFS_Parallel_V3(loadedGraph, 0, 12);
         //Searchers.BFS_Parallel_V3_Partition(loadedGraph, 0, 4);
-        sw.Stop();
-        Console.WriteLine($"Finished in: {sw.ElapsedMilliseconds} ms, all visited: {visited.IsAllSet()}");
-
+        //sw.Stop();
+        //Console.WriteLine($"Finished in: {sw.ElapsedMilliseconds} ms, all visited: {visited.IsAllSet()}");
+        //GCSettings.LatencyMode = oldMe;
 
         //var summary_g1 = BenchmarkRunner.Run<BFSBenchmarks_G1>();
-        //var summary_g2 = BenchmarkRunner.Run<BFSBenchmarks_G2>();
+        var summary_g2 = BenchmarkRunner.Run<BFSBenchmarks_G2>();
 
         Console.ReadKey();
     }
@@ -67,6 +73,13 @@ public class BFSBenchmarks_G1
         loadedGraph = GraphService.LoadGraph(FileName);
         GC.EndNoGCRegion();
         GC.Collect();
+        GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+    }
+
+    [GlobalCleanup]
+    public void Clenup()
+    {
+        
     }
 
     [Benchmark]
@@ -99,7 +112,12 @@ public class BFSBenchmarks_G2
     {
         string FileName = "g2_adjacency_list.bin";
         Console.WriteLine($"Loading graph {FileName} from file...");
+        //GC.TryStartNoGCRegion(1_073_741_824L * 10);
         loadedGraph = GraphService.LoadGraph(FileName);
+        //GC.KeepAlive(loadedGraph);
+        //GC.EndNoGCRegion();
+        //GC.Collect();
+        //GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
     }
 
     //[Benchmark]

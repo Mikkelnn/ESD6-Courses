@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Diagnostics;
 
 namespace BFSAlgo.Distributed
 {
@@ -11,7 +12,8 @@ namespace BFSAlgo.Distributed
         private INetworkStream stream;
 
         private Bitmap visited;
-        private Dictionary<uint, uint[]> partialGraph;
+        //private Dictionary<uint, uint[]> partialGraph;
+        private uint[][] partialGraph;
 
 
         public Worker(IPAddress coordinatorAddress, int coordinatorPort)
@@ -31,7 +33,7 @@ namespace BFSAlgo.Distributed
             stream ??= await NetworkStreamWrapper.GetWorkerInstanceAsync(coordinatorAddress, coordinatorPort);
 
             (this.partialGraph, var totalNodeCount) = await NetworkHelper.ReceiveGraphPartitionAsync(stream);
-
+            
             visited = new Bitmap(totalNodeCount);
 
             await RunMainLoop();
@@ -46,8 +48,8 @@ namespace BFSAlgo.Distributed
                 var frontier = await NetworkHelper.ReceiveUintArrayAsync(stream);
                 if (frontier == null) break;
 
-                //var globalVisited = await NetworkHelper.ReceiveByteArrayAsync(stream);
-                //visited.OverwriteFromByteArray(globalVisited);
+                var globalVisited = await NetworkHelper.ReceiveByteArrayAsync(stream);
+                visited.OverwriteFromByteArray(globalVisited);
 
                 var nextFrontier = SearchFrontier(frontier);
                 //var nextFrontier = SearchFrontierParallel(frontier, maxThreads: 4);
@@ -65,7 +67,8 @@ namespace BFSAlgo.Distributed
 
             foreach (var node in frontier)
             {
-                if (!partialGraph.TryGetValue(node, out var neighbors)) continue;
+                //if (!partialGraph.TryGetValue(node, out var neighbors)) continue;
+                var neighbors = partialGraph[node];
 
                 foreach (var neighbor in neighbors)
                 {

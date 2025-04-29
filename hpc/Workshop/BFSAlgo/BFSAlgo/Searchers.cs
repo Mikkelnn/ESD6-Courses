@@ -1,4 +1,5 @@
 ﻿using BFSAlgo.Distributed;
+using System.Diagnostics;
 using System.Net;
 
 namespace BFSAlgo
@@ -98,32 +99,44 @@ namespace BFSAlgo
         {
             IPAddress address = IPAddress.Loopback;
 
+            //Stopwatch setup = Stopwatch.StartNew();
             // start server
             var coordinator = new Coordinator(address, port: 0); // use next available port
-            _ = coordinator.StartAsync();
+            var runnerTask = coordinator.StartAsync();
+            
+            var coordinatorEndpoint = coordinator.ListeningOn;
+            //setup.Stop();
 
-            int port = coordinator.ListeningOn.Port;
-
+            //Stopwatch spawnWorkers = Stopwatch.StartNew();
             // spawn workers
             var workerTasks = new Task[numWorkers];
             for (int i = 0; i < numWorkers; i++)
             {
-                int id = i;
                 workerTasks[i] = Task.Run(async () =>
                 {
-                    var worker = new Worker(address, port);
+                    var worker = new Worker(coordinatorEndpoint.Address, coordinatorEndpoint.Port);
                     await worker.Start();
                 });
             }
+            //spawnWorkers.Stop();
 
+            //Stopwatch waitConnect = Stopwatch.StartNew();
             // wait for workers to connect
-            bool timeout = Task.Run(() => { while (coordinator.ConnectedWorkers < numWorkers) { } }).Wait(millisecondsTimeout);
-            if (timeout) throw new Exception("Timeout waiting for workers!");
+            bool completed = coordinator.WaitForWorkerCountAsync(numWorkers).Wait(millisecondsTimeout);
+            if (!completed) throw new Exception("Timeout waiting for workers!");
+            //waitConnect.Stop();
 
+            //Stopwatch searcch = Stopwatch.StartNew();
             var visited = coordinator.RunAsync(graph, startNode);
 
-            timeout = !visited.Wait(millisecondsTimeout);
-            if (timeout) throw new Exception("Timeout searching!");
+            completed = visited.Wait(millisecondsTimeout);
+            if (!completed) throw new Exception("Timeout searching!");
+            //searcch.Stop();
+
+            //Console.WriteLine($"Setup: {setup.ElapsedMilliseconds} ms " +
+            //    $"Spawn workers: {spawnWorkers.ElapsedMilliseconds} ms " +
+            //    $"Wait connect: {waitConnect.ElapsedMilliseconds} ms " +
+            //    $"Searcch: {searcch.ElapsedMilliseconds} ms");
 
             return visited.Result;
         }

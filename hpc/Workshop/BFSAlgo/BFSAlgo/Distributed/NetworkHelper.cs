@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,8 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -83,24 +88,39 @@ namespace BFSAlgo.Distributed
 
         public static async Task SendGraphPartitionAsync(INetworkStream stream, List<uint> ownedNodes, List<uint>[] fullGraph)
         {
-            using var ms = new MemoryStream();
-            using var writer = new BinaryWriter(ms);
+            long totalNeighbors = 0;
+            foreach (var node in ownedNodes)
+                totalNeighbors += fullGraph[node].Count;
 
-            writer.Write(fullGraph.Length);
-            writer.Write(ownedNodes.Count);
+            // 4 bytes per uint
+            int esimatedSize = sizeof(int) * 3 + (ownedNodes.Count * (sizeof(uint) * 2)) + ((int)totalNeighbors * sizeof(uint));
 
+
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(esimatedSize);
+            int offset = 0;
+
+            // Helper to write uint
+            void WriteUInt(uint value)
+            {
+                BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(offset, 4), value);
+                offset += 4;
+            }
+
+            WriteUInt((uint)fullGraph.Length);
+            WriteUInt((uint)ownedNodes.Count);
             foreach (var node in ownedNodes)
             {
                 var neighbors = fullGraph[node];
-                writer.Write(node);
-                writer.Write(neighbors.Count);
+                WriteUInt(node);
+                WriteUInt((uint)neighbors.Count);
                 foreach (var neighbor in neighbors)
-                    writer.Write(neighbor);
+                    WriteUInt(neighbor);
             }
 
-            var data = ms.ToArray();
+            var data = buffer.AsMemory(0, offset);
             await stream.WriteAsync(BitConverter.GetBytes(data.Length));
             await stream.WriteAsync(data);
+            ArrayPool<byte>.Shared.Return(buffer);
         }
 
         public static async Task<uint[]> ReceiveUintArrayAsync(INetworkStream stream)
@@ -115,7 +135,6 @@ namespace BFSAlgo.Distributed
             await stream.ReadExactlyAsync(buffer);
 
             var uintSpan = MemoryMarshal.Cast<byte, uint>(buffer.Span);
-            //return uintSpan.ToArray().ToList();
             return uintSpan.ToArray();
         }
 
@@ -132,31 +151,73 @@ namespace BFSAlgo.Distributed
             return buffer;
         }
 
-        public static async Task<(Dictionary<uint, uint[]>, int)> ReceiveGraphPartitionAsync(INetworkStream stream)
+        //public static async Task<(Dictionary<uint, uint[]>, int)> ReceiveGraphPartitionAsync(INetworkStream stream)
+        public static async Task<(uint[][], int)> ReceiveGraphPartitionAsync(INetworkStream stream)
         {
             var lengthBytes = new byte[4];
             await stream.ReadExactlyAsync(lengthBytes);
             int totalLength = BitConverter.ToInt32(lengthBytes);
 
-            var buffer = new byte[totalLength];
-            await stream.ReadExactlyAsync(buffer);
+            //Stopwatch total = Stopwatch.StartNew();
 
-            var dict = new Dictionary<uint, uint[]>();
-            using var ms = new MemoryStream(buffer);
-            using var reader = new BinaryReader(ms);
+            //Stopwatch alloc = Stopwatch.StartNew();
+            var buffer = ArrayPool<byte>.Shared.Rent(totalLength);
+            //alloc.Stop();
 
-            int totalNodeCount = reader.ReadInt32();
-            int nodeCount = reader.ReadInt32();
+            //Stopwatch network = Stopwatch.StartNew();
+            await stream.ReadExactlyAsync(buffer.AsMemory(0, totalLength));
+            //network.Stop();
+
+            //Stopwatch cast = Stopwatch.StartNew();
+            var uintData = MemoryMarshal.Cast<byte, uint>(buffer.AsSpan(0, totalLength));
+            //cast.Stop();
+            
+            int offset = 0;
+
+            int totalNodeCount = (int)uintData[offset++];
+            int nodeCount = (int)uintData[offset++];
+
+            var dict = new uint[totalNodeCount][];
+
+            Stopwatch parse = Stopwatch.StartNew();
             for (int i = 0; i < nodeCount; i++)
             {
-                uint nodeId = reader.ReadUInt32();
-                int neighborCount = reader.ReadInt32();
+                uint nodeId = uintData[offset++];
+                int neighborCount = (int)uintData[offset++];
+
                 var neighbors = new uint[neighborCount];
-                for (int j = 0; j < neighborCount; j++)
-                    neighbors[j] = reader.ReadUInt32();
+                uintData.Slice(offset, neighborCount).CopyTo(neighbors);
 
                 dict[nodeId] = neighbors;
+
+                offset += neighborCount;
             }
+
+            //using var ms = new MemoryStream(buffer, 0, totalLength);
+            //using var reader = new BinaryReader(ms);
+
+            //int totalNodeCount = reader.ReadInt32();
+            //int nodeCount = reader.ReadInt32();
+            //for (int i = 0; i < nodeCount; i++)
+            //{
+            //    uint nodeId = reader.ReadUInt32();
+            //    int neighborCount = reader.ReadInt32();
+            //    var neighbors = new uint[neighborCount];
+            //    for (int j = 0; j < neighborCount; j++)
+            //        neighbors[j] = reader.ReadUInt32();
+
+            //    dict[nodeId] = neighbors;
+            //}
+            //parse.Stop();
+
+            ArrayPool<byte>.Shared.Return(buffer);
+            //total.Stop();
+
+            //Console.WriteLine($"Worker total: {total.ElapsedMilliseconds} ms, " /*+
+            //    $"Alloc: {alloc.ElapsedMilliseconds}, " +
+            //    $"Cast: {cast.ElapsedMilliseconds}, " +
+            //    $"Network: {network.ElapsedMilliseconds}, "*/ +
+            //    $"Parse: {parse.ElapsedMilliseconds}");
 
             return (dict, totalNodeCount);
         }
