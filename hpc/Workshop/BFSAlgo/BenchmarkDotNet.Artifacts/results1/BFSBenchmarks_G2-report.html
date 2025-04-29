@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>BFSBenchmarks_G2-20250430-011407</title>
+<title>BFSBenchmarks_G2-20250429-233030</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -16,16 +16,16 @@
 BenchmarkDotNet v0.14.0, Windows 10 (10.0.19045.5737/22H2/2022Update)
 Intel Core i7-7820X CPU 3.60GHz (Kaby Lake), 1 CPU, 16 logical and 8 physical cores
 .NET SDK 9.0.203
-  [Host]     : .NET 9.0.4 (9.0.425.16305), X64 RyuJIT AVX-512F+CD+BW+DQ+VL
+  [Host]     : .NET 9.0.4 (9.0.425.16305), X64 RyuJIT AVX-512F+CD+BW+DQ+VL [AttachedDebugger]
   DefaultJob : .NET 9.0.4 (9.0.425.16305), X64 RyuJIT AVX-512F+CD+BW+DQ+VL
 </code></pre>
 <pre><code></code></pre>
 
 <table>
-<thead><tr><th>Method</th><th>numWorkers</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Allocated</th>
+<thead><tr><th>Method</th><th>numWorkers</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>Distributed</td><td>8</td><td>3.056 s</td><td>0.0609 s</td><td>0.1271 s</td><td>4.6 GB</td>
-</tr><tr><td>Distributed</td><td>12</td><td>3.038 s</td><td>0.0548 s</td><td>0.0768 s</td><td>5.65 GB</td>
+</thead><tbody><tr><td>Distributed</td><td>8</td><td>5.076 s</td><td>0.1824 s</td><td>0.5378 s</td><td>4.895 s</td><td>4.17 GB</td>
+</tr><tr><td>Distributed</td><td>12</td><td>5.283 s</td><td>0.1369 s</td><td>0.4038 s</td><td>5.418 s</td><td>4.92 GB</td>
 </tr></tbody></table>
 </body>
 </html>
