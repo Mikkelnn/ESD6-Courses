@@ -1,0 +1,14 @@
+numpy>=1.24
+matplotlib>=3.7
+imageio>=2.25
+Pillow>=9.0
+rawpy>=0.19
+
+# GPU support
+pyopencl>=2023.1
+
+# Performance optimization
+numba>=0.57
+
+# For parallel execution with MPI
+mpi4py>=3.1
