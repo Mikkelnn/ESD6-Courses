@@ -1,15 +1,12 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import imageio
-import time
+from numba import jit
+from pathlib import Path
 
-# Medimos tiempo de ejecución total
-start_time = time.perf_counter()
-
-
-
-# Paso 1: Cargar imagen PNG y convertir a YCbCr
-rgb = imageio.imread('gato.png').astype(np.float32)
+# Step 1: Load PNG image and convert to YCbCr
+img_path = Path("images/gato.png")
+rgb = imageio.v2.imread('gato.png').astype(np.float32)
 
 def rgb_to_ycbcr(image):
     R = image[:, :, 0]
@@ -29,7 +26,7 @@ def ycbcr_to_rgb(Y, Cb, Cr):
 
 Y, Cb, Cr = rgb_to_ycbcr(rgb)
 
-# Paso 2: Padding a múltiplos de 8
+# Step 2: Padding to multiples of 8
 def pad_image(image, block_size=8):
     h, w = image.shape
     pad_h = (block_size - h % block_size) % block_size
@@ -41,25 +38,38 @@ Y_padded, orig_h, orig_w = pad_image(Y)
 Cb_padded, _, _ = pad_image(Cb)
 Cr_padded, _, _ = pad_image(Cr)
 
-# Paso 3: Crear matriz de transformación DCT
-def dct_matrix(N=8):
-    C = np.zeros((N, N))
-    for k in range(N):
-        for n in range(N):
-            alpha = np.sqrt(1/N) if k == 0 else np.sqrt(2/N)
-            C[k, n] = alpha * np.cos(np.pi * (2*n + 1) * k / (2 * N))
-    return C
+# Step 3: Define DCT and IDCT using Numba JIT
+@jit(nopython=True)
+def dct_2d_numba(block):
+    N = block.shape[0]
+    result = np.zeros((N, N))
+    for u in range(N):
+        for v in range(N):
+            sum_val = 0.0
+            for x in range(N):
+                for y in range(N):
+                    sum_val += block[x, y] * np.cos(np.pi * (2*x + 1) * u / (2 * N)) * np.cos(np.pi * (2*y + 1) * v / (2 * N))
+            alpha_u = np.sqrt(1/N) if u == 0 else np.sqrt(2/N)
+            alpha_v = np.sqrt(1/N) if v == 0 else np.sqrt(2/N)
+            result[u, v] = alpha_u * alpha_v * sum_val
+    return result
 
-C = dct_matrix(8)
+@jit(nopython=True)
+def idct_2d_numba(block):
+    N = block.shape[0]
+    result = np.zeros((N, N))
+    for x in range(N):
+        for y in range(N):
+            sum_val = 0.0
+            for u in range(N):
+                for v in range(N):
+                    alpha_u = np.sqrt(1/N) if u == 0 else np.sqrt(2/N)
+                    alpha_v = np.sqrt(1/N) if v == 0 else np.sqrt(2/N)
+                    sum_val += alpha_u * alpha_v * block[u, v] * np.cos(np.pi * (2*x + 1) * u / (2 * N)) * np.cos(np.pi * (2*y + 1) * v / (2 * N))
+            result[x, y] = sum_val
+    return result
 
-# Paso 4: DCT e IDCT usando multiplicación matricial vectorizada
-def dct_2d_vec(block):
-    return C @ block @ C.T
-
-def idct_2d_vec(block):
-    return C.T @ block @ C
-
-# Paso 5: Matrices de cuantización JPEG estándar
+# Step 4: Standard JPEG Quantization Matrices
 Q_Y = np.array([
     [16,11,10,16,24,40,51,61],
     [12,12,14,19,26,58,60,55],
@@ -82,42 +92,33 @@ Q_C = np.array([
     [99,99,99,99,99,99,99,99]
 ])
 
-# Paso 6: Procesar canal con DCT vectorizada
-def process_channel(channel, Q):
+# Step 5: Process each channel
+def process_channel_numba(channel, Q):
     block_size = 8
     h, w = channel.shape
     compressed = np.zeros_like(channel)
     for i in range(0, h, block_size):
         for j in range(0, w, block_size):
             block = channel[i:i+block_size, j:j+block_size] - 128
-            dct_block = dct_2d_vec(block)
+            dct_block = dct_2d_numba(block)
             quantized = np.round(dct_block / Q)
             dequantized = quantized * Q
-            idct_block = idct_2d_vec(dequantized) + 128
+            idct_block = idct_2d_numba(dequantized) + 128
             compressed[i:i+block_size, j:j+block_size] = idct_block
     return compressed
 
-Y_compressed = process_channel(Y_padded, Q_Y)
-Cb_compressed = process_channel(Cb_padded, Q_C)
-Cr_compressed = process_channel(Cr_padded, Q_C)
+Y_compressed = process_channel_numba(Y_padded, Q_Y)
+Cb_compressed = process_channel_numba(Cb_padded, Q_C)
+Cr_compressed = process_channel_numba(Cr_padded, Q_C)
 
-# Paso 7: Recortar a tamaño original
+# Step 6: Crop back to original size
 Y_final = Y_compressed[:orig_h, :orig_w]
 Cb_final = Cb_compressed[:orig_h, :orig_w]
 Cr_final = Cr_compressed[:orig_h, :orig_w]
 
-# Paso 8: Convertir de YCbCr a RGB
+# Step 7: Convert back to RGB
 final_rgb = ycbcr_to_rgb(Y_final, Cb_final, Cr_final)
 
-# Fin de medición de tiempo
-end_time = time.perf_counter()
-total_time = end_time - start_time
-print(f"⏱️ Tiempo total de ejecución: {total_time:.3f} segundos")
-
-# Paso 9: Mostrar y guardar
-plt.imsave('gatorapidocolor.jpg', final_rgb)
-plt.imshow(final_rgb)
-plt.title("Reconstruida en color")
-plt.axis('off')
-plt.show()
-
+# Step 8: Save final image
+out_path = Path("outputs/output_jit_png.jpeg")
+plt.imsave(out_path, final_rgb.astype(np.uint8))

@@ -1,15 +1,16 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import rawpy  # Library to read raw images
 import imageio
-import time
+from pathlib import Path
 
-# Medimos tiempo de ejecución total
-start_time = time.perf_counter()
-
-
-
-# Paso 1: Cargar imagen PNG y convertir a YCbCr
-rgb = imageio.imread('gato.png').astype(np.float32)
+# ---------- Load image and convert to YCbCr ----------
+def load_raw_image(filename):
+    img_path = Path("images") / filename
+    raw = rawpy.imread(str(img_path))  # rawpy requires a string path
+    rgb = raw.postprocess()
+    return rgb.astype(np.float32)
+rgb = load_raw_image('image.nef')
 
 def rgb_to_ycbcr(image):
     R = image[:, :, 0]
@@ -109,15 +110,6 @@ Cr_final = Cr_compressed[:orig_h, :orig_w]
 # Paso 8: Convertir de YCbCr a RGB
 final_rgb = ycbcr_to_rgb(Y_final, Cb_final, Cr_final)
 
-# Fin de medición de tiempo
-end_time = time.perf_counter()
-total_time = end_time - start_time
-print(f"⏱️ Tiempo total de ejecución: {total_time:.3f} segundos")
-
 # Paso 9: Mostrar y guardar
-plt.imsave('gatorapidocolor.jpg', final_rgb)
-plt.imshow(final_rgb)
-plt.title("Reconstruida en color")
-plt.axis('off')
-plt.show()
-
+out_path = Path("outputs/output_numpy_raw.jpeg")
+plt.imsave(out_path, final_rgb.astype(np.uint8))

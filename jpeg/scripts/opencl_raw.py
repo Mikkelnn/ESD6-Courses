@@ -3,9 +3,16 @@ import pyopencl as cl
 import imageio.v2 as imageio
 from PIL import Image
 import time
+import rawpy  # Library to read raw images
+from pathlib import Path
 
 # ---------- Load image and convert to YCbCr ----------
-rgb = imageio.imread('gato.png').astype(np.float32)
+def load_raw_image(filename):
+    img_path = Path("images") / filename
+    raw = rawpy.imread(str(img_path))  # rawpy requires a string path
+    rgb = raw.postprocess()
+    return rgb.astype(np.float32)
+rgb = load_raw_image('image.nef')
 
 R, G, B = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
 Y  =  0.299 * R + 0.587 * G + 0.114 * B
@@ -172,6 +179,7 @@ Cb_final = run_channel(Cbp, QC)
 Cr_final = run_channel(Crp, QC)
 
 
+
 # ---------- GPU YCbCr to RGB Conversion ----------
 size = h * w
 Y_buf  = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=Y_final.astype(np.float32).flatten())
@@ -180,7 +188,6 @@ Cr_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=Cr_final.astype
 RGB_buf = cl.Buffer(ctx, mf.WRITE_ONLY, size * 3)
 
 end = time.perf_counter()
-
 print(f"✅ Full GPU color compression and decompression in {end - start:.4f} seconds")
 
 
@@ -190,4 +197,5 @@ rgb_flat = np.empty(size * 3, dtype=np.uint8)
 cl.enqueue_copy(queue, rgb_flat, RGB_buf)
 rgb_out = rgb_flat.reshape((h, w, 3))
 
-Image.fromarray(rgb_out).save('jpeg_gpu_final_color.jpg', quality=85)
+output_path = Path("outputs/opencl_png.jpeg")
+Image.fromarray(rgb_out).save('opencl_raw.jpg', quality=85)

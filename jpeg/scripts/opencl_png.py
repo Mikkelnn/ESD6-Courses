@@ -1,19 +1,14 @@
 import numpy as np
 import pyopencl as cl
 import imageio.v2 as imageio
-from matplotlib import pyplot as plt
-import rawpy  # Library to read raw images
+from PIL import Image
 import time
+from pathlib import Path
 
-def load_raw_image(filename):
-    # Open the NEF file with rawpy
-    raw = rawpy.imread(filename)
-    # Convert to RGB
-    rgb = raw.postprocess()
-    return rgb.astype(np.float32)
 
-# Replace 'gato.png' with your raw .NEF image file path
-rgb = load_raw_image('image.nef')
+# ---------- Load image and convert to YCbCr ----------
+img_path = Path("images/gato.png")
+rgb = imageio.imread('gato.png').astype(np.float32)
 
 R, G, B = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
 Y  =  0.299 * R + 0.587 * G + 0.114 * B
@@ -123,6 +118,27 @@ __kernel void rebuild(__global float* blocks, __global float* image, int N, int 
 
     image[img_x * blocks_per_row * N + img_y] = blocks[block_id * N*N + local_x*N + local_y] + 128.0f;
 }
+
+__kernel void ycbcr_to_rgb(
+    __global float* Y,
+    __global float* Cb,
+    __global float* Cr,
+    __global uchar* RGB,
+    int size)
+{
+    int i = get_global_id(0);
+    float y  = Y[i];
+    float cb = Cb[i] - 128.0f;
+    float cr = Cr[i] - 128.0f;
+
+    float r = y + 1.402f * cr;
+    float g = y - 0.344136f * cb - 0.714136f * cr;
+    float b = y + 1.772f * cb;
+
+    RGB[i * 3 + 0] = clamp((int)r, 0, 255);
+    RGB[i * 3 + 1] = clamp((int)g, 0, 255);
+    RGB[i * 3 + 2] = clamp((int)b, 0, 255);
+}
 """
 
 program = cl.Program(ctx, kernel_code).build()
@@ -157,15 +173,25 @@ start = time.perf_counter()
 Y_final  = run_channel(Yp, QY)
 Cb_final = run_channel(Cbp, QC)
 Cr_final = run_channel(Crp, QC)
+
+
+# ---------- GPU YCbCr to RGB Conversion ----------
+size = h * w
+Y_buf  = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=Y_final.astype(np.float32).flatten())
+Cb_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=Cb_final.astype(np.float32).flatten())
+Cr_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=Cr_final.astype(np.float32).flatten())
+RGB_buf = cl.Buffer(ctx, mf.WRITE_ONLY, size * 3)
+
 end = time.perf_counter()
 
 print(f"✅ Full GPU color compression and decompression in {end - start:.4f} seconds")
 
-# ---------- Convert back to RGB ----------
-R = Y_final + 1.402 * (Cr_final - 128)
-G = Y_final - 0.344136 * (Cb_final - 128) - 0.714136 * (Cr_final - 128)
-B = Y_final + 1.772 * (Cb_final - 128)
-rgb_out = np.stack((R, G, B), axis=-1)
-rgb_out = np.clip(rgb_out, 0, 255).astype(np.uint8)
 
-plt.imsave('jpeg_gpu_final_colorRAW.jpeg', rgb_out)
+program.ycbcr_to_rgb(queue, (size,), None, Y_buf, Cb_buf, Cr_buf, RGB_buf, np.int32(size))
+
+rgb_flat = np.empty(size * 3, dtype=np.uint8)
+cl.enqueue_copy(queue, rgb_flat, RGB_buf)
+rgb_out = rgb_flat.reshape((h, w, 3))
+
+output_path = Path("outputs/opencl_png.jpeg")
+Image.fromarray(rgb_out).save(output_path, quality=85)
