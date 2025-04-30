@@ -103,6 +103,22 @@ namespace BFSAlgo.Distributed
 
             return true;
         }
+
+        public uint CountSetBits()
+        {
+            uint count = 0;
+            foreach (var value in bits)
+            {
+                ulong x = value;
+                // Brian Kernighan’s bit counting algorithm (very efficient)
+                while (x != 0)
+                {
+                    x &= (x - 1);
+                    count++;
+                }
+            }
+            return count;
+        }
     }
 
 }

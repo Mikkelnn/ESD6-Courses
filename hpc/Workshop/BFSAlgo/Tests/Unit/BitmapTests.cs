@@ -241,5 +241,60 @@ namespace Tests.Unit
 
             Assert.False(bitmap.IsAllSet());
         }
+
+        [Fact]
+        public void CountSetBits_AllZeros_ReturnsZero()
+        {
+            var bitmap = new Bitmap(64); // One ulong (64 bits)
+            Assert.Equal(0u, bitmap.CountSetBits());
+        }
+
+        [Fact]
+        public void CountSetBits_AllOnes_Returns64()
+        {
+            var bitmap = new Bitmap(64);
+            for (uint i = 0; i < 64; i++)
+                bitmap.Set(i);
+
+            Assert.Equal(64u, bitmap.CountSetBits());
+        }
+
+        [Fact]
+        public void CountSetBits_SingleBit_ReturnsOne()
+        {
+            var bitmap = new Bitmap(64);
+            bitmap.Set(3);
+            Assert.Equal(1u, bitmap.CountSetBits());
+        }
+
+        [Fact]
+        public void CountSetBits_AlternateBits_ReturnsCorrect()
+        {
+            var bitmap = new Bitmap(8);
+            bitmap.Set(1);
+            bitmap.Set(3);
+            bitmap.Set(5);
+            Assert.Equal(3u, bitmap.CountSetBits());
+        }
+
+        [Fact]
+        public void CountSetBits_TwoUlongs_MixedBits_ReturnsCorrect()
+        {
+            var bitmap = new Bitmap(128); // 2 ulongs
+            bitmap.Set(0);
+            bitmap.Set(64);
+            bitmap.Set(127);
+            Assert.Equal(3u, bitmap.CountSetBits());
+        }
+
+        [Fact]
+        public void CountSetBits_UnalignedSize_ReturnsCorrect()
+        {
+            var bitmap = new Bitmap(70);
+            for (uint i = 0; i < 70; i += 2)
+                bitmap.Set(i);
+
+            Assert.Equal(35u, bitmap.CountSetBits());
+        }
     }
 }
