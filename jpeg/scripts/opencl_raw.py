@@ -9,10 +9,14 @@ from pathlib import Path
 # ---------- Load image and convert to YCbCr ----------
 def load_raw_image(filename):
     img_path = Path("images") / filename
+    if not img_path.exists():
+        raise FileNotFoundError(f"❌ RAW image not found: {img_path}")
     raw = rawpy.imread(str(img_path))  # rawpy requires a string path
     rgb = raw.postprocess()
     return rgb.astype(np.float32)
-rgb = load_raw_image('image.nef')
+
+# Usage:
+rgb = load_raw_image("image.nef")
 
 R, G, B = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
 Y  =  0.299 * R + 0.587 * G + 0.114 * B

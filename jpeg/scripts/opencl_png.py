@@ -8,7 +8,7 @@ from pathlib import Path
 
 # ---------- Load image and convert to YCbCr ----------
 img_path = Path("images/gato.png")
-rgb = imageio.imread('gato.png').astype(np.float32)
+rgb = imageio.imread(img_path).astype(np.float32)
 
 R, G, B = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
 Y  =  0.299 * R + 0.587 * G + 0.114 * B

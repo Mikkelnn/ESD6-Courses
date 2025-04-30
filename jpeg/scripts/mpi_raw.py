@@ -11,18 +11,14 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 
 # Start measuring total execution time (only on root)
-if rank == 0:
-    start_time = time.perf_counter()
-
-from pathlib import Path
-
+#if rank == 0:
+ #   start_time = time.perf_counter()
 # ---------- Load image and convert to YCbCr ----------
 def load_raw_image(filename):
     img_path = Path("images") / filename
     raw = rawpy.imread(str(img_path))  # rawpy requires a string path
     rgb = raw.postprocess()
     return rgb.astype(np.float32)
-
 
 if rank == 0:
     rgb = load_raw_image('image.nef')  # Use your .NEF file path here
@@ -148,11 +144,11 @@ if rank == 0:
     final_rgb = ycbcr_to_rgb(Y_final, Cb_final, Cr_final)
 
     # End time and print
-    end_time = time.perf_counter()
-    total_time = end_time - start_time
-    print(f"Total Execution Time: {total_time:.3f} seconds")
+    #end_time = time.perf_counter()
+    #total_time = end_time - start_time
+    #print(f"Total Execution Time: {total_time:.3f} seconds")
     print(f"Used {size} MPI processes")
 
     # Save and show final image
     out_path = Path("outputs/output_mpi_raw.jpeg")
-plt.imsave(out_path, final_rgb.astype(np.uint8))
+    plt.imsave(out_path, final_rgb.astype(np.uint8))
