@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Diagnostics;
+using System.Xml.Linq;
+using BFSAlgo.Distributed.Network;
 
 namespace BFSAlgo.Distributed
 {
@@ -9,8 +11,8 @@ namespace BFSAlgo.Distributed
     {
         private readonly IPAddress coordinatorAddress;
         private readonly int coordinatorPort;
-        private INetworkStream stream;
-
+        private INetworkStream _stream;
+        private readonly INetworkHelper _networkHelper;
         private Bitmap visited;
 
         // Will point to a array of pointers, with a length equal the global node count
@@ -23,106 +25,46 @@ namespace BFSAlgo.Distributed
         {
             this.coordinatorAddress = coordinatorAddress;
             this.coordinatorPort = coordinatorPort;
+            _networkHelper = new NetworkHelper();
         }
 
         // Constructor for DI/testing
-        public Worker(INetworkStream stream)
+        public Worker(INetworkStream stream, INetworkHelper networkHelper)
         {
-            this.stream = stream;
+            _stream = stream;
+            _networkHelper = networkHelper;
         }
 
         public async Task Start()
         {
-            stream ??= await NetworkStreamWrapper.GetWorkerInstanceAsync(coordinatorAddress, coordinatorPort);
+            _stream ??= await NetworkStreamWrapper.GetWorkerInstanceAsync(coordinatorAddress, coordinatorPort);
 
-            (this.partialGraph, var totalNodeCount) = await NetworkHelper.ReceiveGraphPartitionAsync(stream);
-            
+            (this.partialGraph, var totalNodeCount) = await _networkHelper.ReceiveGraphPartitionAsync(_stream);
+
             visited = new Bitmap(totalNodeCount);
 
             await RunMainLoop();
 
-            stream.Close();
+            _stream.Close();
         }
 
         private async Task RunMainLoop()
         {
             while (true)
             {
-                var frontier = await NetworkHelper.ReceiveUintArrayAsync(stream);
+                var frontier = await _networkHelper.ReceiveUintArrayAsync(_stream);
                 if (frontier == null) break;
 
-                var globalVisited = await NetworkHelper.ReceiveByteArrayAsync(stream);
+                var globalVisited = await _networkHelper.ReceiveByteArrayAsync(_stream);
                 visited.OverwriteFromByteArray(globalVisited);
 
-                var nextFrontier = SearchFrontier(frontier);
-                //var nextFrontier = SearchFrontierParallel(frontier, maxThreads: 4);
+                var nextFrontier = FrontierSearchers.SearchFrontier(frontier, partialGraph, visited);
+                //var nextFrontier = FrontierSearchers.SearchFrontierParallel(frontier, partialGraph, visited, maxThreads: 4);
 
                 var data = nextFrontier.ToReadOnlyMemory();
-                await NetworkHelper.SendDataAsync(stream, data);
-                await NetworkHelper.FlushStreamAsync(stream);
+                await _networkHelper.SendByteArrayAsync(_stream, data);
+                await _networkHelper.FlushStreamAsync(_stream);
             }
-        }
-
-        private List<uint> SearchFrontier(Span<uint> frontier)
-        {
-            List<uint> nextFrontier = new List<uint>();
-            if (frontier.IsEmpty) return nextFrontier;
-
-            //foreach (var node in frontier)
-            //{
-            //    // no need to check if we have the node as 
-            //    var neighbors = partialGraph[node];
-
-            //    foreach (var neighbor in neighbors)
-            //    {
-            //        if (visited.SetIfNot(neighbor))
-            //            nextFrontier.Add(neighbor);
-            //    }
-            //}
-
-            for (int i = 0, fl = frontier.Length; i < fl; i++)
-            {
-                var neighbors = partialGraph[frontier[i]];
-
-                for (int j = 0, length = neighbors.Count; j < length; j++)
-                {
-                    uint neighbor = neighbors[j];
-                    if (!visited.SetIfNot(neighbor))
-                        nextFrontier.Add(neighbor);
-                }
-            }
-
-            return nextFrontier;
-        }
-
-        private List<uint> SearchFrontierParallel(List<uint> frontier, int maxThreads)
-        {
-            ConcurrentBag<uint> nextFrontier = new ConcurrentBag<uint>();
-            if (frontier.Count == 0) return nextFrontier.ToList();
-
-
-            var options = new ParallelOptions { MaxDegreeOfParallelism = maxThreads }; // e.g., 4
-            //object _lock = new();
-
-
-            Parallel.ForEach(frontier, options, node =>
-            {
-                //if (!partialGraph.TryGetValue(node, out var neighbors)) return;
-
-                var neighbors = partialGraph[node];
-
-                for (int i = 0, length = neighbors.Count; i < length; i++)
-                {
-                    uint neighbor = neighbors[i];
-
-                    // Atomically mark visited
-                    if (visited.SetIfNot(neighbor))
-                        nextFrontier.Add(neighbor);
-                }
-            });
-
-            return nextFrontier.ToList();
-
         }
     }
 }

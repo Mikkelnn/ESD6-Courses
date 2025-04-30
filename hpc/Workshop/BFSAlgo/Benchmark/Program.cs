@@ -35,7 +35,7 @@ public class Program
 
         var oldMe = GCSettings.LatencyMode;
         GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-        var visited = Searchers.BFS_Distributed(loadedGraph, 0, numWorkers: 12, timeout);
+        var visited = GraphSearchers.BFS_Distributed(loadedGraph, 0, numWorkers: 12, timeout);
         //Searchers.BFS_Parallel_V3(loadedGraph, 0, 12);
         //Searchers.BFS_Parallel_V3_Partition(loadedGraph, 0, 4);
         sw.Stop();
@@ -92,7 +92,7 @@ public class BFSBenchmarks_G1
     }
 
     [Benchmark]
-    public void Sequential() => Searchers.BFS_Sequential(loadedGraph, 0);
+    public void Sequential() => GraphSearchers.BFS_Sequential(loadedGraph, 0);
 
     [Benchmark]
     [Arguments(2)]
@@ -100,7 +100,7 @@ public class BFSBenchmarks_G1
     [Arguments(8)]
     [Arguments(12)]
     [Arguments(16)]
-    public void Parallel(int maxThreads) => Searchers.BFS_Parallel(loadedGraph, 0, maxThreads);
+    public void Parallel(int maxThreads) => GraphSearchers.BFS_Parallel(loadedGraph, 0, maxThreads);
         
     [Benchmark]
     [Arguments(2)]
@@ -108,7 +108,7 @@ public class BFSBenchmarks_G1
     [Arguments(8)]
     [Arguments(12)]
     [Arguments(16)]
-    public void Distributed(int numWorkers) => Searchers.BFS_Distributed(loadedGraph, 0, numWorkers);
+    public void Distributed(int numWorkers) => GraphSearchers.BFS_Distributed(loadedGraph, 0, numWorkers);
 }
 
 [MemoryDiagnoser(false)]
@@ -130,7 +130,7 @@ public class BFSBenchmarks_G2
     }
 
     //[Benchmark]
-    //public void Sequential() => Searchers.BFS_Sequential(loadedGraph, 0);
+    //public void Sequential() => GraphSearchers.BFS_Sequential(loadedGraph, 0);
 
     //[Benchmark]
     //[Arguments(2)]
@@ -138,7 +138,7 @@ public class BFSBenchmarks_G2
     //[Arguments(8)]
     //[Arguments(12)]
     //[Arguments(16)]
-    //public void Parallel(int maxThreads) => Searchers.BFS_Parallel(loadedGraph, 0, maxThreads);
+    //public void Parallel(int maxThreads) => GraphSearchers.BFS_Parallel(loadedGraph, 0, maxThreads);
 
     [Benchmark]
     //[Arguments(2)]
@@ -146,7 +146,7 @@ public class BFSBenchmarks_G2
     [Arguments(8)]
     [Arguments(12)]
     //[Arguments(16)]
-    public void Distributed(int numWorkers) => Searchers.BFS_Distributed(loadedGraph, 0, numWorkers);
+    public void Distributed(int numWorkers) => GraphSearchers.BFS_Distributed(loadedGraph, 0, numWorkers);
 }
 
 

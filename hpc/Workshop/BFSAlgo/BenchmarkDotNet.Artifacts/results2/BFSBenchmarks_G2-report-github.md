@@ -10,5 +10,5 @@ Intel Core i7-7820X CPU 3.60GHz (Kaby Lake), 1 CPU, 16 logical and 8 physical co
 ```
 | Method      | numWorkers | Mean    | Error    | StdDev   | Allocated |
 |------------ |----------- |--------:|---------:|---------:|----------:|
-| **Distributed** | **8**          | **3.056 s** | **0.0609 s** | **0.1271 s** |    **4.6 GB** |
-| **Distributed** | **12**         | **3.038 s** | **0.0548 s** | **0.0768 s** |   **5.65 GB** |
+| **Distributed** | **8**          | **2.900 s** | **0.0554 s** | **0.0681 s** |    **4.6 GB** |
+| **Distributed** | **12**         | **2.916 s** | **0.0458 s** | **0.0383 s** |   **5.65 GB** |

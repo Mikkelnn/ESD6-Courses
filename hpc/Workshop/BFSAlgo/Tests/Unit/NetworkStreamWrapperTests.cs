@@ -1,7 +1,7 @@
-﻿using BFSAlgo.Distributed;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Net;
 using System.Text;
+using BFSAlgo.Distributed.Network;
 
 namespace Tests.Unit
 {

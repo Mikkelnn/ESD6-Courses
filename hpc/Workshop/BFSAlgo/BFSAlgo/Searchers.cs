@@ -1,10 +1,11 @@
 ﻿using BFSAlgo.Distributed;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 
 namespace BFSAlgo
 {
-    public class Searchers
+    public class GraphSearchers
     {
         public static Bitmap BFS_Sequential(List<uint>[] graph, uint startNode)
         {

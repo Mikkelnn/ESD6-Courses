@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -16,65 +14,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace BFSAlgo.Distributed
+namespace BFSAlgo.Distributed.Network
 {
-    public interface INetworkStream
+    public interface INetworkHelper
     {
-        Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken = default);
-        ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default);
-        ValueTask ReadExactlyAsync(Memory<byte> buffer, CancellationToken cancellationToken = default);
-        Task FlushAsync();
-        void Close();
+        Task FlushStreamAsync(INetworkStream stream);
+        Task SendByteArrayAsync(INetworkStream stream, ReadOnlyMemory<byte>? data);
+        Task SendGraphPartitionAsync(INetworkStream stream, List<uint> partition, List<uint>[] fullGraph);
+        
+        Task<uint[]> ReceiveUintArrayAsync(INetworkStream stream);
+        Task<byte[]> ReceiveByteArrayAsync(INetworkStream stream);
+        Task<(ArraySegment<uint>[], int)> ReceiveGraphPartitionAsync(INetworkStream stream);
     }
 
-    public class NetworkStreamWrapper : NetworkStream, INetworkStream
+    public class NetworkHelper : INetworkHelper
     {
-        private TcpClient tcpClient;
+        public async Task FlushStreamAsync(INetworkStream stream) => await stream.FlushAsync();
 
-        public NetworkStreamWrapper(TcpClient tcpClient) : base(tcpClient.Client, true)
-        {
-            this.tcpClient = tcpClient;
-        }
-
-        /// <summary>
-        /// Connect to a coordinator at <paramref name="address"/> : <paramref name="port"/>
-        /// </summary>
-        /// <param name="address"></param>
-        /// <param name="port"></param>
-        /// <returns></returns>
-        public static async Task<NetworkStreamWrapper> GetWorkerInstanceAsync(IPAddress address, int port)
-        {
-            var tcpClient = new TcpClient();
-            await tcpClient.ConnectAsync(address, port);
-
-            var instance = new NetworkStreamWrapper(tcpClient);
-            instance.tcpClient = tcpClient;
-            return instance;
-        }
-
-        public override void Close()
-        {
-            base.Close();
-            tcpClient.Close();
-        }
-    }
-
-    public static class NetworkHelper
-    {
-        public static ReadOnlyMemory<byte> ToReadOnlyMemory(this List<uint> list)
-        {
-            var uintArray = list.ToArray();                      // allocate once
-            //var byteSpan = MemoryMarshal.Cast<uint, byte>(uintArray);
-            //var byteFrontier = new ReadOnlyMemory<byte>(byteSpan.ToArray()); // Make ReadOnlyMemory<byte> from byteSpan
-            int bytes = uintArray.Length * sizeof(uint);
-            var byteFrontier = new byte[bytes];
-            Buffer.BlockCopy(uintArray, 0, byteFrontier, 0, bytes);
-            return byteFrontier;
-        }
-
-        public static async Task FlushStreamAsync(INetworkStream stream) => await stream.FlushAsync();
-
-        public static async Task SendDataAsync(INetworkStream stream, ReadOnlyMemory<byte>? data)
+        public async Task SendByteArrayAsync(INetworkStream stream, ReadOnlyMemory<byte>? data)
         {
             if (data == null)
             {
@@ -89,14 +46,14 @@ namespace BFSAlgo.Distributed
             await stream.WriteAsync(data.Value);
         }
 
-        public static async Task SendGraphPartitionAsync(INetworkStream stream, List<uint> ownedNodes, List<uint>[] fullGraph)
+        public async Task SendGraphPartitionAsync(INetworkStream stream, List<uint> ownedNodes, List<uint>[] fullGraph)
         {
             long totalNeighbors = 0;
             foreach (var node in ownedNodes)
                 totalNeighbors += fullGraph[node].Count;
 
             // 4 bytes per uint
-            int esimatedSize = sizeof(int) * 3 + (ownedNodes.Count * (sizeof(uint) * 2)) + ((int)totalNeighbors * sizeof(uint));
+            int esimatedSize = sizeof(int) * 3 + ownedNodes.Count * sizeof(uint) * 2 + (int)totalNeighbors * sizeof(uint);
 
 
             byte[] buffer = ArrayPool<byte>.Shared.Rent(esimatedSize);
@@ -126,7 +83,7 @@ namespace BFSAlgo.Distributed
             ArrayPool<byte>.Shared.Return(buffer);
         }
 
-        public static async Task<uint[]> ReceiveUintArrayAsync(INetworkStream stream)
+        public async Task<uint[]> ReceiveUintArrayAsync(INetworkStream stream)
         {
             // Read 4 bytes for the length first
             var lengthBytes = new byte[4];
@@ -141,7 +98,7 @@ namespace BFSAlgo.Distributed
             return uintSpan.ToArray();
         }
 
-        public static async Task<byte[]> ReceiveByteArrayAsync(INetworkStream stream)
+        public async Task<byte[]> ReceiveByteArrayAsync(INetworkStream stream)
         {
             // Read 4 bytes for the length first
             var lengthBytes = new byte[4];
@@ -154,7 +111,7 @@ namespace BFSAlgo.Distributed
             return buffer;
         }
 
-        public static async Task<(ArraySegment<uint>[], int)> ReceiveGraphPartitionAsync(INetworkStream stream)
+        public async Task<(ArraySegment<uint>[], int)> ReceiveGraphPartitionAsync(INetworkStream stream)
         {
             var lengthBytes = new byte[4];
             await stream.ReadExactlyAsync(lengthBytes);

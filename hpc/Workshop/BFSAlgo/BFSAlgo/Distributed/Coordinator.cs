@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using BFSAlgo.Distributed.Network;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime;
@@ -7,17 +8,30 @@ namespace BFSAlgo.Distributed
 {
     public class Coordinator
     {
-        private readonly TcpListener _listener;
+        private readonly ITcpListener _listener;
+        private readonly INetworkStreamFactory _streamFactory;
+        private readonly INetworkHelper _networkHelper;
+
         public IPEndPoint ListeningOn => (IPEndPoint)_listener.LocalEndpoint;
 
-        private readonly List<INetworkStream> connectedWorkers = new();
+        private readonly List<INetworkStream> connectedWorkers = new();       
+        private Func<Task>? _onWorkerConnectedAsync;
+
         public int ConnectedWorkers => connectedWorkers.Count;
 
-        private Func<Task>? _onWorkerConnectedAsync;
 
         public Coordinator(IPAddress bindAddress, int port)
         {
-            _listener = new TcpListener(bindAddress, port);
+            _listener = new TcpListenerWrapper(bindAddress, port);
+            _networkHelper = new NetworkHelper();
+            _streamFactory = new NetworkStreamFactory();
+        }
+
+        public Coordinator(ITcpListener listener, INetworkStreamFactory streamFactory, INetworkHelper networkHelper)
+        {
+            _listener = listener;
+            _streamFactory = streamFactory;
+            _networkHelper = networkHelper;
         }
 
         public async Task StartAsync()
@@ -31,8 +45,8 @@ namespace BFSAlgo.Distributed
             while (true)
             {
                 var tcpClient = await _listener.AcceptTcpClientAsync();
-                var worker = new NetworkStreamWrapper(tcpClient);
-                connectedWorkers.Add(worker);
+                var workerStream = _streamFactory.Create(tcpClient);
+                connectedWorkers.Add(workerStream);
                 
                 if (_onWorkerConnectedAsync != null)
                     await _onWorkerConnectedAsync.Invoke();
@@ -98,7 +112,7 @@ namespace BFSAlgo.Distributed
                     partitionedFrontier[i].Clear();
 
                 //rxWait.Start();
-                var receiveTasks = streams.Select(NetworkHelper.ReceiveUintArrayAsync);
+                var receiveTasks = streams.Select(_networkHelper.ReceiveUintArrayAsync);
                 var results = await Task.WhenAll(receiveTasks);  // Wait for all receives to complete                
                 //rxWait.Stop();
                 //Console.WriteLine($"rxWait inc: {rxWait.ElapsedMilliseconds} ms");
@@ -130,20 +144,20 @@ namespace BFSAlgo.Distributed
             if (streams.Length != partitioned.Length) 
                 throw new ArgumentException("Not same amount of partitions as strams");
 
-            var senders = streams.Select((stream, i) => Task.Run(() => NetworkHelper.SendGraphPartitionAsync(streams[i], partitioned[i], graph)));
+            var senders = streams.Select((stream, i) => Task.Run(() => _networkHelper.SendGraphPartitionAsync(streams[i], partitioned[i], graph)));
 
             await Task.WhenAll(senders);
         }
 
-        private static async Task SendNewFrontier(INetworkStream[] streams, Bitmap visitedGlobal, List<uint>[] frontier)
+        private async Task SendNewFrontier(INetworkStream[] streams, Bitmap visitedGlobal, List<uint>[] frontier)
         {
             var currentGlobalVisited = visitedGlobal.AsReadOnlyMemory;
 
             var sendTasks = streams.Select(async (stream, i) =>
             {
-                await NetworkHelper.SendDataAsync(stream, frontier[i].ToReadOnlyMemory());
-                await NetworkHelper.SendDataAsync(stream, currentGlobalVisited);
-                await NetworkHelper.FlushStreamAsync(stream);
+                await _networkHelper.SendByteArrayAsync(stream, frontier[i].ToReadOnlyMemory());
+                await _networkHelper.SendByteArrayAsync(stream, currentGlobalVisited);
+                await _networkHelper.FlushStreamAsync(stream);
             });
             await Task.WhenAll(sendTasks);  // Wait for all sends to complete
         }
@@ -152,8 +166,8 @@ namespace BFSAlgo.Distributed
         {
             var sendTasksStop = streams.Select(async stream =>
             {
-                await NetworkHelper.SendDataAsync(stream, null);
-                await NetworkHelper.FlushStreamAsync(stream);
+                await _networkHelper.SendByteArrayAsync(stream, null);
+                await _networkHelper.FlushStreamAsync(stream);
             });
             await Task.WhenAll(sendTasksStop);  // Wait for all sends to complete
         }

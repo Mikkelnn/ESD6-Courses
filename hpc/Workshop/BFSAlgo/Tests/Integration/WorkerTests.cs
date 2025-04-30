@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using BFSAlgo.Distributed.Network;
 
 namespace Tests.Integration
 {
@@ -23,6 +24,7 @@ namespace Tests.Integration
                 []
             };
 
+            INetworkHelper networkHelper = new NetworkHelper();
             // setup tcp server at any available port
             var listener = new TcpListener(IPAddress.Loopback, port: 0); 
             listener.Start();
@@ -38,19 +40,19 @@ namespace Tests.Integration
 
             // Act
             // 0. Send partial graph
-            await NetworkHelper.SendGraphPartitionAsync(networkStream, assignedNodes, fullGraph);
+            await networkHelper.SendGraphPartitionAsync(networkStream, assignedNodes, fullGraph);
             // 1. Send a frontier containing node 0
-            await NetworkHelper.SendDataAsync(networkStream, new List<uint> { 0 }.ToReadOnlyMemory());
+            await networkHelper.SendByteArrayAsync(networkStream, new List<uint> { 0 }.ToReadOnlyMemory());
             // 2. Send empty visited bitmap
             var visitedBitMap = new Bitmap(fullGraph.Length);
-            await NetworkHelper.SendDataAsync(networkStream, visitedBitMap.AsReadOnlyMemory);
+            await networkHelper.SendByteArrayAsync(networkStream, visitedBitMap.AsReadOnlyMemory);
             await networkStream.FlushAsync();
 
             // 3. Receive the new frontier
-            var receivedFrontier = await NetworkHelper.ReceiveUintArrayAsync(networkStream);
+            var receivedFrontier = await networkHelper.ReceiveUintArrayAsync(networkStream);
 
             // 4. Send termination signal
-            await NetworkHelper.SendDataAsync(networkStream, null);
+            await networkHelper.SendByteArrayAsync(networkStream, null);
             await networkStream.FlushAsync();
 
             // Wait for the worker to terminate

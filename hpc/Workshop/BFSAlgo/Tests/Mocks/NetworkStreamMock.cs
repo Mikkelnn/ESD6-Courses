@@ -1,4 +1,5 @@
 ﻿using BFSAlgo.Distributed;
+using BFSAlgo.Distributed.Network;
 using System;
 using System.Collections.Generic;
 using System.Linq;

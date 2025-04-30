@@ -1,4 +1,4 @@
-﻿using BFSAlgo.Distributed;
+﻿using BFSAlgo.Distributed.Network;
 using System.Runtime.InteropServices;
 using Tests.Mocks;
 
@@ -36,13 +36,13 @@ namespace Tests.Unit
         }
 
         [Fact]
-        public async Task SendDataAsync_NullData_SendsTerminationSignal()
+        public async Task SendByteArrayAsync_NullData_SendsTerminationSignal()
         {
             // Arrange
             var mockStream = new NetworkStreamMock();
 
             // Act
-            await NetworkHelper.SendDataAsync(mockStream, null);
+            await new NetworkHelper().SendByteArrayAsync(mockStream, null);
 
             // Assert: Ensure that termination signal (-1) is sent
             var written = mockStream.GetWrittenData();
@@ -51,7 +51,7 @@ namespace Tests.Unit
         }
 
         [Fact]
-        public async Task SendDataAsync_SomeData_SendsDataCorrectly()
+        public async Task SendByteArrayAsync_SomeData_SendsDataCorrectly()
         {
             // Arrange
             var mockStream = new NetworkStreamMock();
@@ -59,7 +59,7 @@ namespace Tests.Unit
             var data = new List<uint> { 1, 2, 3, 4 };
 
             // Act
-            await NetworkHelper.SendDataAsync(mockStream, data.ToReadOnlyMemory());
+            await new NetworkHelper().SendByteArrayAsync(mockStream, data.ToReadOnlyMemory());
 
             // Assert: Ensure data length and data are being written correctly
             var writtenLength = mockStream.GetWrittenData();
@@ -84,7 +84,7 @@ namespace Tests.Unit
             mockStream.AddDataToRead(expectedData);
 
             // Act
-            var result = await NetworkHelper.ReceiveByteArrayAsync(mockStream);
+            var result = await new NetworkHelper().ReceiveByteArrayAsync(mockStream);
 
             // Assert
             Assert.Equal(expectedData, result);
@@ -98,7 +98,7 @@ namespace Tests.Unit
             mockStream.AddDataToRead(BitConverter.GetBytes(-1)); // Simulate termination signal
 
             // Act
-            var result = await NetworkHelper.ReceiveByteArrayAsync(mockStream);
+            var result = await new NetworkHelper().ReceiveByteArrayAsync(mockStream);
 
             // Assert
             Assert.Null(result);
@@ -116,7 +116,7 @@ namespace Tests.Unit
             mockStream.AddDataToRead(byteData);
 
             // Act
-            var result = await NetworkHelper.ReceiveUintArrayAsync(mockStream);
+            var result = await new NetworkHelper().ReceiveUintArrayAsync(mockStream);
 
             // Assert: Verify that the data was read correctly
             Assert.Equal(data, result);
@@ -130,7 +130,7 @@ namespace Tests.Unit
             mockStream.AddDataToRead(BitConverter.GetBytes(-1)); // Simulate termination signal
 
             // Act
-            var result = await NetworkHelper.ReceiveUintArrayAsync(mockStream);
+            var result = await new NetworkHelper().ReceiveUintArrayAsync(mockStream);
 
             // Assert
             Assert.Null(result);
@@ -172,7 +172,7 @@ namespace Tests.Unit
             };
 
             // Act
-            await NetworkHelper.SendGraphPartitionAsync(mockStream, ownedNodes, fullGraph);
+            await new NetworkHelper().SendGraphPartitionAsync(mockStream, ownedNodes, fullGraph);
 
             // Assert: Ensure that the data is being written to the stream
             var writtenLength = mockStream.GetWrittenData();
@@ -190,7 +190,7 @@ namespace Tests.Unit
             var mockStream = new NetworkStreamMock();
             var data = new byte[]
             {
-                2, 0, 0, 0,           // Total number of nodes (2)
+                3, 0, 0, 0,           // Total number of nodes (2)
                 // Data of the graph partition
                 2, 0, 0, 0,           // Number of nodes (2)
                 0, 0, 0, 0,           // Node 0
@@ -206,11 +206,11 @@ namespace Tests.Unit
             mockStream.AddDataToRead(data);
 
             // Act
-            var (result, totlalNodeCount) = await NetworkHelper.ReceiveGraphPartitionAsync(mockStream);
+            var (result, totlalNodeCount) = await new NetworkHelper().ReceiveGraphPartitionAsync(mockStream);
 
             // Assert: Verify the graph partition is parsed correctly
-            Assert.Equal(2, totlalNodeCount);
-            //Assert.Equal(2, result.Count);
+            Assert.Equal(3, totlalNodeCount);
+            Assert.Equal(3, result.Length);
             //Assert.Contains(0U, result.Keys);
             //Assert.Contains(1U, result.Keys);
             Assert.Equal(new List<uint> { 1, 2 }, result[0]);

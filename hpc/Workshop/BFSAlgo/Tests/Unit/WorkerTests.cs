@@ -1,4 +1,5 @@
 ﻿using BFSAlgo.Distributed;
+using BFSAlgo.Distributed.Network;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,9 +24,10 @@ namespace Tests.Unit
             };
 
             var mockStream = new NetworkStreamMock();
+            var networkHelper = new NetworkHelper();
 
             // Simulate receiving partial graph - this is a quick fix...
-            await NetworkHelper.SendGraphPartitionAsync(mockStream, assignedNodes, fullGraph);
+            await networkHelper.SendGraphPartitionAsync(mockStream, assignedNodes, fullGraph);
             mockStream.AddDataToRead(mockStream.GetWrittenData());
             mockStream.AddDataToRead(mockStream.GetWrittenData());
 
@@ -42,7 +44,7 @@ namespace Tests.Unit
             // Simulate termination (null frontier)
             mockStream.AddDataToRead(BitConverter.GetBytes(-1)); // -1 signals termination
 
-            var worker = new Worker(mockStream);
+            var worker = new Worker(mockStream, networkHelper);
 
             // Act
             await worker.Start();

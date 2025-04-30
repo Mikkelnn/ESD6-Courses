@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Tests.Integration
 {
-    public class SearchersTests
+    public class GraphSearchersTests
     {
         private List<uint>[] BuildGraph(params (uint from, uint to)[] edges)
         {
@@ -29,7 +29,7 @@ namespace Tests.Integration
             var graph = BuildGraph((0, 1), (0, 2), (1, 3), (2, 3));
 
             // Act
-            var visited = Searchers.BFS_Sequential(graph, 0);
+            var visited = GraphSearchers.BFS_Sequential(graph, 0);
 
             // Assert
             for (uint i = 0; i <= 3; i++)
@@ -45,7 +45,7 @@ namespace Tests.Integration
             ulong expectedVisitedMask = 1UL | (1UL << 1) | (1UL << 2);
 
             // Act
-            var visited = Searchers.BFS_Sequential(graph, 0);
+            var visited = GraphSearchers.BFS_Sequential(graph, 0);
 
             // Assert
             var visitedData = visited.AsReadOnlyMemory.ToArray();
@@ -57,7 +57,7 @@ namespace Tests.Integration
         {
             var graph = new List<uint>[0];
 
-            Assert.Throws<IndexOutOfRangeException>(() => Searchers.BFS_Sequential(graph, 0));
+            Assert.Throws<IndexOutOfRangeException>(() => GraphSearchers.BFS_Sequential(graph, 0));
         }
 
 
@@ -67,7 +67,7 @@ namespace Tests.Integration
             var graph = BuildGraph((0, 1), (1, 2), (2, 3));
 
             // Act
-            var visited = Searchers.BFS_Parallel(graph, 0, maxThreads: 4);
+            var visited = GraphSearchers.BFS_Parallel(graph, 0, maxThreads: 4);
 
             // Assert
             for (uint i = 0; i <= 3; i++)
@@ -82,7 +82,7 @@ namespace Tests.Integration
             var graph = BuildGraph((0, 1), (2, 3)); // Disconnected parts
 
             // Act
-            var visited = Searchers.BFS_Parallel(graph, 0, maxThreads: 2);
+            var visited = GraphSearchers.BFS_Parallel(graph, 0, maxThreads: 2);
 
             // Assert
             Assert.False(visited.Get(2), "Node 2 should not be visited");
@@ -97,7 +97,7 @@ namespace Tests.Integration
             int millisecondsTimeout = (int)TimeSpan.FromSeconds(1).TotalMilliseconds;
 
             // Act
-            var visited = Searchers.BFS_Distributed(graph, 0, numWorkers: 2, millisecondsTimeout);
+            var visited = GraphSearchers.BFS_Distributed(graph, 0, numWorkers: 2, millisecondsTimeout);
 
             // Assert
             for (uint i = 0; i <= 3; i++)
@@ -113,7 +113,7 @@ namespace Tests.Integration
             int millisecondsTimeout = (int)TimeSpan.FromSeconds(1).TotalMilliseconds;
 
             // Act
-            var visited = Searchers.BFS_Distributed(graph, 0, numWorkers: 1, millisecondsTimeout);
+            var visited = GraphSearchers.BFS_Distributed(graph, 0, numWorkers: 1, millisecondsTimeout);
 
             // Assert
             Assert.True(visited.Get(0), "Node 0 should be visited");
