@@ -12,7 +12,10 @@ namespace BFSAlgo.Distributed
         private INetworkStream stream;
 
         private Bitmap visited;
-        //private Dictionary<uint, uint[]> partialGraph;
+
+        // Will point to a array of pointers, with a length equal the global node count
+        // we only save a pointer to the neighbors for each node and thus not too large - but fast for lookup
+        // if a worker, worskcase, try to access a node it do not have, an emppty array is returned
         private ArraySegment<uint>[] partialGraph;
 
 
@@ -65,61 +68,61 @@ namespace BFSAlgo.Distributed
             List<uint> nextFrontier = new List<uint>();
             if (frontier.IsEmpty) return nextFrontier;
 
-            foreach (var node in frontier)
-            {
-                //if (!partialGraph.TryGetValue(node, out var neighbors)) continue;
-                var neighbors = partialGraph[node];
-
-                foreach (var neighbor in neighbors)
-                {
-                    if (visited.SetIfNot(neighbor))
-                        nextFrontier.Add(neighbor);
-                }
-            }
-
-            //for (int i = 0, fl = frontier.Count; i < fl; i++)
+            //foreach (var node in frontier)
             //{
-            //    var neighbors = partialGraph[frontier[i]];
+            //    // no need to check if we have the node as 
+            //    var neighbors = partialGraph[node];
 
-            //    for (int j = 0, length = neighbors.Length; j < length; j++)
+            //    foreach (var neighbor in neighbors)
             //    {
-            //        uint neighbor = neighbors[j];
-            //        if (!visited.SetIfNot(neighbor))
+            //        if (visited.SetIfNot(neighbor))
             //            nextFrontier.Add(neighbor);
             //    }
             //}
 
+            for (int i = 0, fl = frontier.Length; i < fl; i++)
+            {
+                var neighbors = partialGraph[frontier[i]];
+
+                for (int j = 0, length = neighbors.Count; j < length; j++)
+                {
+                    uint neighbor = neighbors[j];
+                    if (!visited.SetIfNot(neighbor))
+                        nextFrontier.Add(neighbor);
+                }
+            }
+
             return nextFrontier;
         }
 
-        //private List<uint> SearchFrontierParallel(List<uint> frontier, int maxThreads)
-        //{
-        //    ConcurrentBag<uint> nextFrontier = new ConcurrentBag<uint>();
-        //    if (frontier.Count == 0) return nextFrontier.ToList();
+        private List<uint> SearchFrontierParallel(List<uint> frontier, int maxThreads)
+        {
+            ConcurrentBag<uint> nextFrontier = new ConcurrentBag<uint>();
+            if (frontier.Count == 0) return nextFrontier.ToList();
 
 
-        //    var options = new ParallelOptions { MaxDegreeOfParallelism = maxThreads }; // e.g., 4
-        //    //object _lock = new();
+            var options = new ParallelOptions { MaxDegreeOfParallelism = maxThreads }; // e.g., 4
+            //object _lock = new();
 
 
-        //    Parallel.ForEach(frontier, options, node =>
-        //    {
-        //        //if (!partialGraph.TryGetValue(node, out var neighbors)) return;
+            Parallel.ForEach(frontier, options, node =>
+            {
+                //if (!partialGraph.TryGetValue(node, out var neighbors)) return;
 
-        //        var neighbors = partialGraph[node];
+                var neighbors = partialGraph[node];
 
-        //        for (int i = 0, length = neighbors.Length; i < length; i++)
-        //        {
-        //            uint neighbor = neighbors[i];
+                for (int i = 0, length = neighbors.Count; i < length; i++)
+                {
+                    uint neighbor = neighbors[i];
 
-        //            // Atomically mark visited
-        //            if (visited.SetIfNot(neighbor))
-        //                nextFrontier.Add(neighbor);                    
-        //        }
-        //    });
+                    // Atomically mark visited
+                    if (visited.SetIfNot(neighbor))
+                        nextFrontier.Add(neighbor);
+                }
+            });
 
-        //    return nextFrontier.ToList();
+            return nextFrontier.ToList();
 
-        //}
+        }
     }
 }

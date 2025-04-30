@@ -154,77 +154,60 @@ namespace BFSAlgo.Distributed
             return buffer;
         }
 
-        //public static async Task<(Dictionary<uint, uint[]>, int)> ReceiveGraphPartitionAsync(INetworkStream stream)
         public static async Task<(ArraySegment<uint>[], int)> ReceiveGraphPartitionAsync(INetworkStream stream)
         {
             var lengthBytes = new byte[4];
             await stream.ReadExactlyAsync(lengthBytes);
             int totalLength = BitConverter.ToInt32(lengthBytes);
 
-            Stopwatch total = Stopwatch.StartNew();
+            //Stopwatch total = Stopwatch.StartNew();
 
-            Stopwatch alloc = Stopwatch.StartNew();
+            //Stopwatch alloc = Stopwatch.StartNew();
             var buffer = ArrayPool<byte>.Shared.Rent(totalLength);
-            var uintData = new uint[totalLength / sizeof(uint)];                        
-            alloc.Stop();
+            var uintData = new uint[totalLength / sizeof(uint)];
+            //alloc.Stop();
 
             //Stopwatch network = Stopwatch.StartNew();
             await stream.ReadExactlyAsync(buffer.AsMemory(0, totalLength));
             //network.Stop();
 
-            Stopwatch cast = Stopwatch.StartNew();
-            //var uintData = MemoryMarshal.Cast<byte, uint>(buffer.AsSpan(0, totalLength));
+            //Stopwatch cast = Stopwatch.StartNew();
 
             Buffer.BlockCopy(buffer, 0, uintData, 0, totalLength);
             ArrayPool<byte>.Shared.Return(buffer);
-            cast.Stop();
+            //cast.Stop();
 
             int offset = 0;
 
-            int totalNodeCount = (int)uintData[offset++];
-            int nodeCount = (int)uintData[offset++];
+            int totalNodeCount = (int)uintData[offset++]; // Number of nodes in the complete/global grapth
+            int ownNodeCount = (int)uintData[offset++]; // Number of node current worker have
 
+            // Allocate a array of pointers for the totalNodeCount
+            // we only save a pointer to the neighbors and thus not too large but fast for lookup
+            // if a worker, worskcase, try to access a node it do not have, an emppty array is returned
             var neighborSegments = new ArraySegment<uint>[totalNodeCount];
 
-            Stopwatch parse = Stopwatch.StartNew();
-            for (int i = 0; i < nodeCount; i++)
+            //Stopwatch parse = Stopwatch.StartNew();
+            for (int i = 0; i < ownNodeCount; i++)
             {
                 uint nodeId = uintData[offset++];
                 int neighborCount = (int)uintData[offset++];
 
-                //var neighbors = new uint[neighborCount];
-                //uintData.Slice(offset, neighborCount).CopyTo(neighbors);
-
+                // specify where the neighbors for nodeId are located in uintData
                 neighborSegments[nodeId] = new ArraySegment<uint>(uintData, offset, neighborCount);
 
+                // skip ahead to next nodeId
                 offset += neighborCount;
             }
+            //parse.Stop();
 
-            //using var ms = new MemoryStream(buffer, 0, totalLength);
-            //using var reader = new BinaryReader(ms);
+            //total.Stop();
 
-            //int totalNodeCount = reader.ReadInt32();
-            //int nodeCount = reader.ReadInt32();
-            //for (int i = 0; i < nodeCount; i++)
-            //{
-            //    uint nodeId = reader.ReadUInt32();
-            //    int neighborCount = reader.ReadInt32();
-            //    var neighbors = new uint[neighborCount];
-            //    for (int j = 0; j < neighborCount; j++)
-            //        neighbors[j] = reader.ReadUInt32();
-
-            //    dict[nodeId] = neighbors;
-            //}
-            parse.Stop();
-
-            
-            total.Stop();
-
-            Console.WriteLine($"Worker total: {total.ElapsedMilliseconds} ms, " +
-                $"Alloc: {alloc.ElapsedMilliseconds}, " +
-                $"Cast: {cast.ElapsedMilliseconds}, " +
-                //$"Network: {network.ElapsedMilliseconds}, " +
-                $"Parse: {parse.ElapsedMilliseconds}");
+            //Console.WriteLine($"Worker total: {total.ElapsedMilliseconds} ms, " +
+            //    $"Alloc: {alloc.ElapsedMilliseconds}, " +
+            //    $"Cast: {cast.ElapsedMilliseconds}, " +
+            //    //$"Network: {network.ElapsedMilliseconds}, " +
+            //    $"Parse: {parse.ElapsedMilliseconds}");
 
             return (neighborSegments, totalNodeCount);
         }

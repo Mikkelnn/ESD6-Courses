@@ -9,7 +9,21 @@ using BFSAlgo;
 
 public class Program
 {    
-    public static async Task Main(string[] args)
+    public static void Main(string[] args)
+    {
+        //Test();
+        Benchmark();
+
+        Console.ReadKey();
+    }
+
+    static void Benchmark()
+    {
+        //var summary_g1 = BenchmarkRunner.Run<BFSBenchmarks_G1>();
+        var summary_g2 = BenchmarkRunner.Run<BFSBenchmarks_G2>();
+    }
+
+    static void Test()
     {
         //GenerateGraphs();
         Console.WriteLine("loading g2..");
@@ -27,11 +41,6 @@ public class Program
         sw.Stop();
         Console.WriteLine($"Finished in: {sw.ElapsedMilliseconds} ms, all visited: {visited.IsAllSet()}");
         GCSettings.LatencyMode = oldMe;
-
-        //var summary_g1 = BenchmarkRunner.Run<BFSBenchmarks_G1>();
-        //var summary_g2 = BenchmarkRunner.Run<BFSBenchmarks_G2>();
-
-        Console.ReadKey();
     }
 
     void GenerateGraphs()

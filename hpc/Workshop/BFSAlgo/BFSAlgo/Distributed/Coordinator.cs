@@ -63,15 +63,14 @@ namespace BFSAlgo.Distributed
             var streams = connectedWorkers.ToArray();
             int workerCount = streams.Length;
 
-
-            var partionAndSend = Stopwatch.StartNew();
-            var partion = Stopwatch.StartNew();
+            //var partionAndSend = Stopwatch.StartNew();
+            //var partion = Stopwatch.StartNew();
             List<uint>[] partitioned = GraphPartitioner.Partition(graph, workerCount);
-            partion.Stop();
-            var sendPartion = Stopwatch.StartNew();
+            //partion.Stop();
+            //var sendPartion = Stopwatch.StartNew();
             await SendPartitions(streams, partitioned, graph);
-            sendPartion.Stop();
-            partionAndSend.Stop();
+            //sendPartion.Stop();
+            //partionAndSend.Stop();
 
             var visitedGlobal = new Bitmap(graph.Length);
             visitedGlobal.Set(startNode);
@@ -83,44 +82,44 @@ namespace BFSAlgo.Distributed
             // add ninitial frontier to accosiated worker
             partitionedFrontier[startNode % workerCount] = new List<uint>() { startNode };
 
-            var sendFronteris = new Stopwatch();
-            var rxWait = new Stopwatch();
-            var prepNext = new Stopwatch();
+            //var sendFronteris = new Stopwatch();
+            //var rxWait = new Stopwatch();
+            //var prepNext = new Stopwatch();
 
-            var totalLoopTime = Stopwatch.StartNew();
+            //var totalLoopTime = Stopwatch.StartNew();
             while (partitionedFrontier.Any(x => x.Count != 0))
             {
-                sendFronteris.Start();
+                //sendFronteris.Start();
                 //Send frontier information to all workers
                 await SendNewFrontier(streams, visitedGlobal, partitionedFrontier);
-                sendFronteris.Stop();
+                //sendFronteris.Stop();
 
                 for (int i = 0; i < partitionedFrontier.Length; i++)
                     partitionedFrontier[i].Clear();
 
-                rxWait.Start();
+                //rxWait.Start();
                 var receiveTasks = streams.Select(NetworkHelper.ReceiveUintArrayAsync);
                 var results = await Task.WhenAll(receiveTasks);  // Wait for all receives to complete                
-                rxWait.Stop();
-                Console.WriteLine($"rxWait inc: {rxWait.ElapsedMilliseconds} ms");
+                //rxWait.Stop();
+                //Console.WriteLine($"rxWait inc: {rxWait.ElapsedMilliseconds} ms");
 
-                prepNext.Start();
+                //prepNext.Start();
                 for (int i = 0; i < workerCount; i++)
                     foreach (var node in results[i])
                         if (visitedGlobal.SetIfNot(node))
                             partitionedFrontier[node % workerCount].Add(node);
-                prepNext.Stop();
+                //prepNext.Stop();
             }
-            totalLoopTime.Stop();
+            //totalLoopTime.Stop();
 
             // Tell workers to stop
             await TerminateWorkers(streams);
 
-            Console.WriteLine($"Timings (ms) => " +
-                $"partionAndSend: {partionAndSend.ElapsedMilliseconds} (partion: {partion.ElapsedMilliseconds}, sendPartion: {sendPartion.ElapsedMilliseconds}), " +
-                $"SendFronteris: {sendFronteris.ElapsedMilliseconds}, " +
-                $"RX Wait: {rxWait.ElapsedMilliseconds}, Prep: {prepNext.ElapsedMilliseconds}, " +
-                $"TotalLoop: {totalLoopTime.ElapsedMilliseconds}");
+            //Console.WriteLine($"Timings (ms) => " +
+            //    $"partionAndSend: {partionAndSend.ElapsedMilliseconds} (partion: {partion.ElapsedMilliseconds}, sendPartion: {sendPartion.ElapsedMilliseconds}), " +
+            //    $"SendFronteris: {sendFronteris.ElapsedMilliseconds}, " +
+            //    $"RX Wait: {rxWait.ElapsedMilliseconds}, Prep: {prepNext.ElapsedMilliseconds}, " +
+            //    $"TotalLoop: {totalLoopTime.ElapsedMilliseconds}");
 
 
             return visitedGlobal;
