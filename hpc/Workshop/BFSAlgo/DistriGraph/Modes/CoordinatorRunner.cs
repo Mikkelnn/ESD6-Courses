@@ -2,8 +2,10 @@
 using BFSAlgo.Distributed;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,16 +22,28 @@ namespace DistriGraph.Modes
             _ = coordinator.StartAsync();
 
             // Print the listening address for the coordinator
-            Console.WriteLine($"Coordinator started, listening on {coordinator.ListeningOn}");
+            string GetAddresses() {
+                var addressList = Dns.GetHostEntry(Dns.GetHostName())
+                .AddressList
+                .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ip))
+                .Select(ip => ip.ToString());
+
+                return $"<{string.Join(",", addressList)}>";
+            }
+            var actualIp = ipAddress == IPAddress.Any ? GetAddresses() : coordinator.ListeningOn.Address.ToString();
+            Console.WriteLine($"Coordinator started, listening on {actualIp}:{coordinator.ListeningOn.Port}");
 
             await DisplayWorkerConnectionStatusAsync(coordinator);
 
             var graph = LoadGraphFromUser();
             var startNode = PromptForStartNode();
 
+            Stopwatch stopwatch = Stopwatch.StartNew();
             var visited = await coordinator.RunAsync(graph, startNode);
+            stopwatch.Stop();
 
-            Console.WriteLine($"\nTraversal complete. Visited {visited.CountSetBits()} of {graph.Length} nodes.");
+            Console.WriteLine($"\nTraversal completed in {stopwatch}. ");
+            Console.WriteLine($"Visited {visited.CountSetBits()} of {graph.Length} nodes.");
         }
 
         public static async Task<(IPAddress ipAddress, int port)> InitializeCoordinatorAsync()
@@ -99,8 +113,18 @@ namespace DistriGraph.Modes
                 Console.SetCursorPosition(0, line + 1);
                 Console.WriteLine("Press [S] to start coordination, any other key to refresh.".PadRight(Console.WindowWidth - 1));
 
-                // Wait for 1 second before refreshing the status
-                await Task.Delay(1000);
+                // Wait up to 1 second or until a key is pressed
+                for (int i = 0; i < 10; i++) // 10 * 100ms = 1s
+                {
+                    if (Console.KeyAvailable)
+                    {
+                        var key = Console.ReadKey(intercept: true).Key;
+                        if (key == ConsoleKey.S)
+                            return; // break the loop and return
+                    }
+
+                    await Task.Delay(100);
+                }
             }
         }
 
