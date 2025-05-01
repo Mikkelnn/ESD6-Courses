@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime;
+using System.Xml.Linq;
 
 namespace BFSAlgo.Distributed
 {
@@ -113,13 +114,14 @@ namespace BFSAlgo.Distributed
 
                 //rxWait.Start();
                 var receiveTasks = streams.Select(_networkHelper.ReceiveUintArrayAsync);
-                var results = await Task.WhenAll(receiveTasks);  // Wait for all receives to complete                
+                var results = Task.WhenEach(receiveTasks); // Wait for workers partial frontiers
                 //rxWait.Stop();
                 //Console.WriteLine($"rxWait inc: {rxWait.ElapsedMilliseconds} ms");
 
                 //prepNext.Start();
-                for (int i = 0; i < workerCount; i++)
-                    foreach (var node in results[i])
+                // sequentially handle workers frontiers as thy respond
+                await foreach (var result in results)
+                    foreach (var node in await result)
                         if (visitedGlobal.SetIfNot(node))
                             partitionedFrontier[node % workerCount].Add(node);
                 //prepNext.Stop();

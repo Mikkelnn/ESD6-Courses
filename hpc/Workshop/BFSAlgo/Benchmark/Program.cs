@@ -96,7 +96,7 @@ public class BFSBenchmarks_G1
     [Arguments(8)]
     [Arguments(12)]
     [Arguments(16)]
-    public void Parallel(int maxThreads) => GraphSearchers.BFS_ParallelSharedMemory(loadedGraph, 0, maxThreads);
+    public void BFS_ParallelSharedMemory(int maxThreads) => GraphSearchers.BFS_ParallelSharedMemory(loadedGraph, 0, maxThreads);
         
     [Benchmark]
     [Arguments(2)]
@@ -129,7 +129,7 @@ public class BFSBenchmarks_G2
     [Arguments(8)]
     [Arguments(12)]
     [Arguments(16)]
-    public void Parallel(int maxThreads) => GraphSearchers.BFS_ParallelSharedMemory(loadedGraph, 0, maxThreads);
+    public void BFS_ParallelSharedMemory(int maxThreads) => GraphSearchers.BFS_ParallelSharedMemory(loadedGraph, 0, maxThreads);
 
     [Benchmark]
     [Arguments(2)]
