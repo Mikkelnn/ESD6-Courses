@@ -150,7 +150,7 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-36" value="VISITED_NODES" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontFamily=latex;fontSource=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fcm-unicode%2Ffiles%2FOldFiles%2Fcm-unicode-fix-0.6.3.tar.bz2%2Fdownload;" edge="1" parent="1">
+        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-36" value="VISITED_VERTICES" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;fontFamily=latex;fontSource=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fcm-unicode%2Ffiles%2FOldFiles%2Fcm-unicode-fix-0.6.3.tar.bz2%2Fdownload;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="255" y="470" as="sourcePoint" />
             <mxPoint x="129.66666666666674" y="470" as="targetPoint" />
