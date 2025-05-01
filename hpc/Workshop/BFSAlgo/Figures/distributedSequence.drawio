@@ -4,11 +4,22 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-32" value="BUILD_FRONTIERS" style="html=1;align=left;spacingLeft=2;endArrow=block;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=0;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="410" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="290" y="410" />
+              <mxPoint x="290" y="420" />
+            </Array>
+            <mxPoint x="265" y="420.0000000000001" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-2" value="W1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
           <mxGeometry x="400" y="80" width="100" height="400" as="geometry" />
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-13" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="SGS3YfIMiVyTnCJ-oeVh-2">
-          <mxGeometry x="45" y="60" width="10" height="300" as="geometry" />
+          <mxGeometry x="45" y="60" width="10" height="320" as="geometry" />
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-3" value="W2" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
           <mxGeometry x="570" y="80" width="100" height="400" as="geometry" />
@@ -40,13 +51,13 @@
             <mxPoint x="440" y="160" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-19" value="SEND_PARTION" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
+        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-19" value="SEND_PARTION_0" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="265" y="244.9999999999999" as="sourcePoint" />
             <mxPoint x="445" y="244.9999999999999" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-21" value="SEND_PARTION" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
+        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-21" value="SEND_PARTION_1" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
           <mxGeometry x="0.6333" relative="1" as="geometry">
             <mxPoint x="265" y="254.9999999999999" as="sourcePoint" />
             <mxPoint x="615" y="254.9999999999999" as="targetPoint" />
@@ -54,7 +65,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-22" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
-          <mxGeometry x="615" y="140" width="10" height="310" as="geometry" />
+          <mxGeometry x="615" y="140" width="10" height="330" as="geometry" />
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-23" value="SPAWN" style="html=1;verticalAlign=bottom;startArrow=oval;startFill=1;endArrow=block;startSize=8;curved=0;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=5;entryPerimeter=0;" edge="1" parent="1" target="SGS3YfIMiVyTnCJ-oeVh-22">
           <mxGeometry width="60" relative="1" as="geometry">
@@ -95,65 +106,54 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-7" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="SGS3YfIMiVyTnCJ-oeVh-1">
-          <mxGeometry x="45" y="60" width="10" height="330" as="geometry" />
+          <mxGeometry x="45" y="60" width="10" height="340" as="geometry" />
         </mxCell>
-        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-26" value="SEND_&lt;span style=&quot;text-align: left;&quot;&gt;FRONTIER&lt;/span&gt;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
+        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-26" value="SEND_&lt;span style=&quot;text-align: left;&quot;&gt;FRONTIER_0&lt;/span&gt;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="265" y="324.9999999999999" as="sourcePoint" />
-            <mxPoint x="445" y="324.9999999999999" as="targetPoint" />
+            <mxPoint x="265" y="344.9999999999999" as="sourcePoint" />
+            <mxPoint x="445" y="344.9999999999999" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-27" value="SEND_&lt;span style=&quot;text-align: left;&quot;&gt;FRONTIER&lt;/span&gt;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
+        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-27" value="SEND_&lt;span style=&quot;text-align: left;&quot;&gt;FRONTIER_1&lt;/span&gt;" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
           <mxGeometry x="0.4571" relative="1" as="geometry">
-            <mxPoint x="265" y="334.9999999999999" as="sourcePoint" />
-            <mxPoint x="610" y="335" as="targetPoint" />
+            <mxPoint x="265" y="354.9999999999999" as="sourcePoint" />
+            <mxPoint x="615" y="354.9999999999999" as="targetPoint" />
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-29" value="while count(FRONTIER) &amp;gt; 0" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;width=170;height=30;" vertex="1" parent="1">
-          <mxGeometry x="140" y="290" width="500" height="120" as="geometry" />
+          <mxGeometry x="240" y="290" width="400" height="140" as="geometry" />
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-30" value="PARTIAL_NEXT_FRONTIER" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="445" y="359.9999999999999" as="sourcePoint" />
-            <mxPoint x="265" y="359.9999999999999" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="SGS3YfIMiVyTnCJ-oeVh-32" value="BUILD_FRONTIERS" style="html=1;align=left;spacingLeft=2;endArrow=block;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=0;rounded=0;" edge="1" parent="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="260" y="390" as="sourcePoint" />
-            <Array as="points">
-              <mxPoint x="290" y="390" />
-              <mxPoint x="290" y="400" />
-            </Array>
-            <mxPoint x="265" y="400.0000000000001" as="targetPoint" />
-            <mxPoint as="offset" />
+            <mxPoint x="445" y="379.9999999999999" as="sourcePoint" />
+            <mxPoint x="265" y="379.9999999999999" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-31" value="PARTIAL_NEXT_FRONTIER" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;" edge="1" parent="1">
           <mxGeometry x="-0.5143" relative="1" as="geometry">
-            <mxPoint x="615" y="369.9999999999999" as="sourcePoint" />
-            <mxPoint x="265" y="369.9999999999999" as="targetPoint" />
+            <mxPoint x="615" y="389.9999999999999" as="sourcePoint" />
+            <mxPoint x="265" y="389.9999999999999" as="targetPoint" />
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-34" value="TERMINATE" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
           <mxGeometry width="80" relative="1" as="geometry">
-            <mxPoint x="265" y="434.9999999999999" as="sourcePoint" />
-            <mxPoint x="445" y="434.9999999999999" as="targetPoint" />
+            <mxPoint x="265" y="454.9999999999999" as="sourcePoint" />
+            <mxPoint x="445" y="454.9999999999999" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-35" value="TERMINATE" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;" edge="1" parent="1">
           <mxGeometry x="0.5143" width="80" relative="1" as="geometry">
-            <mxPoint x="265" y="444.9999999999999" as="sourcePoint" />
-            <mxPoint x="615" y="445" as="targetPoint" />
+            <mxPoint x="265" y="464.9999999999999" as="sourcePoint" />
+            <mxPoint x="615" y="465" as="targetPoint" />
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="SGS3YfIMiVyTnCJ-oeVh-36" value="VISITED_NODES" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="255" y="460" as="sourcePoint" />
-            <mxPoint x="129.66666666666674" y="460" as="targetPoint" />
+            <mxPoint x="255" y="470" as="sourcePoint" />
+            <mxPoint x="129.66666666666674" y="470" as="targetPoint" />
           </mxGeometry>
         </mxCell>
       </root>
