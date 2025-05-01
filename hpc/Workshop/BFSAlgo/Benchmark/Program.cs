@@ -19,7 +19,7 @@ public class Program
 
     static void Benchmark()
     {
-        //var summary_g1 = BenchmarkRunner.Run<BFSBenchmarks_G1>();
+        var summary_g1 = BenchmarkRunner.Run<BFSBenchmarks_G1>();
         var summary_g2 = BenchmarkRunner.Run<BFSBenchmarks_G2>();
     }
 
@@ -78,11 +78,7 @@ public class BFSBenchmarks_G1
     {
         string FileName = "g1_adjacency_list.bin";
         Console.WriteLine($"Loading graph {FileName} from file...");
-        GC.TryStartNoGCRegion(1_073_741_824L * 2);
         loadedGraph = GraphService.LoadGraph(FileName);
-        GC.EndNoGCRegion();
-        GC.Collect();
-        GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
     }
 
     [GlobalCleanup]
@@ -121,31 +117,26 @@ public class BFSBenchmarks_G2
     {
         string FileName = "g2_adjacency_list.bin";
         Console.WriteLine($"Loading graph {FileName} from file...");
-        //GC.TryStartNoGCRegion(1_073_741_824L * 10);
         loadedGraph = GraphService.LoadGraph(FileName);
-        //GC.KeepAlive(loadedGraph);
-        //GC.EndNoGCRegion();
-        //GC.Collect();
-        //GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
     }
 
-    //[Benchmark]
-    //public void Sequential() => GraphSearchers.BFS_Sequential(loadedGraph, 0);
-
-    //[Benchmark]
-    //[Arguments(2)]
-    //[Arguments(4)]
-    //[Arguments(8)]
-    //[Arguments(12)]
-    //[Arguments(16)]
-    //public void Parallel(int maxThreads) => GraphSearchers.BFS_Parallel(loadedGraph, 0, maxThreads);
+    [Benchmark]
+    public void Sequential() => GraphSearchers.BFS_Sequential(loadedGraph, 0);
 
     [Benchmark]
-    //[Arguments(2)]
-    //[Arguments(4)]
+    [Arguments(2)]
+    [Arguments(4)]
     [Arguments(8)]
     [Arguments(12)]
-    //[Arguments(16)]
+    [Arguments(16)]
+    public void Parallel(int maxThreads) => GraphSearchers.BFS_ParallelSharedMemory(loadedGraph, 0, maxThreads);
+
+    [Benchmark]
+    [Arguments(2)]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(12)]
+    [Arguments(16)]
     public void Distributed(int numWorkers) => GraphSearchers.BFS_Distributed(loadedGraph, 0, numWorkers);
 }
 
