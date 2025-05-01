@@ -58,7 +58,7 @@ namespace BFSAlgo
         //    }
         //}
 
-        public static Bitmap BFS_Parallel(List<uint>[] graph, uint startNode, int maxThreads)
+        public static Bitmap BFS_ParallelSharedMemory(List<uint>[] graph, uint startNode, int maxThreads)
         {
             int numNodes = graph.Length;
             var visited = new Bitmap(numNodes); // 0: not visited, 1: visited

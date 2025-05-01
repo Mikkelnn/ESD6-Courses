@@ -67,7 +67,7 @@ namespace Tests.Integration
             var graph = BuildGraph((0, 1), (1, 2), (2, 3));
 
             // Act
-            var visited = GraphSearchers.BFS_Parallel(graph, 0, maxThreads: 4);
+            var visited = GraphSearchers.BFS_ParallelSharedMemory(graph, 0, maxThreads: 4);
 
             // Assert
             for (uint i = 0; i <= 3; i++)
@@ -82,7 +82,7 @@ namespace Tests.Integration
             var graph = BuildGraph((0, 1), (2, 3)); // Disconnected parts
 
             // Act
-            var visited = GraphSearchers.BFS_Parallel(graph, 0, maxThreads: 2);
+            var visited = GraphSearchers.BFS_ParallelSharedMemory(graph, 0, maxThreads: 2);
 
             // Assert
             Assert.False(visited.Get(2), "Node 2 should not be visited");
