@@ -30,8 +30,8 @@ namespace BFSAlgo
                     uint target = (uint)rand.NextInt64(nodeCount);
                     if (target != i)
                     {
-                        var edge = (Math.Min(i, target), Math.Max(i, target));
-                        if (!edgeSet.Contains(edge))
+                        var edge = (Math.Min(i, target), Math.Max(i, target)); // This line makes sure that there is no duplicate edge generation.
+                        if (!edgeSet.Contains(edge))//E.g. if the edge 3,4 already exists 4,3 wont be made
                         {
                             graph[i].Add(target);
                             graph[target].Add(i);
