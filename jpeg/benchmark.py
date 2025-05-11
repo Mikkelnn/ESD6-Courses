@@ -5,8 +5,15 @@ import numpy as np
 # Lista de implementaciones
 implementaciones = [
     
-    ("GPU (PNG)", "python scripts/opencl_png.py"),
-    ("GPU (NEF)", "python scripts/opencl_raw.py")
+    ("JIT Numba (NEF)", "python scripts/jit_raw.py"),
+    ("JIT Numba (PNG)", "python scripts/jit_png.py"),
+    ("Numpy Vectorized (NEF)", "python scripts/numpy_vectorized_raw.py"),
+    ("Numpy Vectorized (PNG)", "python scripts/numpy_vectorized_png.py"),
+    ("OpenCL (NEF)", "python scripts/opencl_raw.py"),
+    ("OpenCL (PNG)", "python scripts/opencl_png.py"),
+    ("MPI (NEF)", "python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "python scripts/mpi_png.py"),
+
 ]
 
 def run_command(cmd):
