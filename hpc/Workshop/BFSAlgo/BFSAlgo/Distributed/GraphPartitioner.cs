@@ -11,8 +11,8 @@ namespace BFSAlgo.Distributed
             if (partitions <= 0)
                 throw new ArgumentOutOfRangeException(nameof(partitions), "Partition count must be greater than zero.");
 
+            // Initialize partition map
             var partitionedGraphs = new List<uint>[partitions];
-
             for (int i = 0; i < partitions; i++)
                 partitionedGraphs[i] = new List<uint>();
 
@@ -25,5 +25,4 @@ namespace BFSAlgo.Distributed
             return partitionedGraphs;
         }
     }
-
 }
