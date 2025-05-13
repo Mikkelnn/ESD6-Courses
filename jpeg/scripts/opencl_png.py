@@ -169,7 +169,7 @@ def run_channel(channel, Q):
     return out_img[:h, :w]
 
 # ---------- Process Channels ----------
-start = time.perf_counter()
+#start = time.perf_counter()
 Y_final  = run_channel(Yp, QY)
 Cb_final = run_channel(Cbp, QC)
 Cr_final = run_channel(Crp, QC)
@@ -182,9 +182,6 @@ Cb_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=Cb_final.astype
 Cr_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=Cr_final.astype(np.float32).flatten())
 RGB_buf = cl.Buffer(ctx, mf.WRITE_ONLY, size * 3)
 
-end = time.perf_counter()
-
-print(f"✅ Full GPU color compression and decompression in {end - start:.4f} seconds")
 
 
 program.ycbcr_to_rgb(queue, (size,), None, Y_buf, Cb_buf, Cr_buf, RGB_buf, np.int32(size))
@@ -195,3 +192,7 @@ rgb_out = rgb_flat.reshape((h, w, 3))
 
 output_path = Path("outputs/opencl_png.jpeg")
 Image.fromarray(rgb_out).save(output_path, quality=85)
+
+#end = time.perf_counter()
+
+#print(f"Full GPU color compression and decompression in {end - start:.4f} seconds")

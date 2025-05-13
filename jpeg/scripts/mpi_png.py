@@ -5,7 +5,6 @@ import time
 from mpi4py import MPI
 from pathlib import Path
 
-
 # Initialize MPI
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -15,40 +14,19 @@ size = comm.Get_size()
 if rank == 0:
     start_time = time.perf_counter()
 
-# Step 1: Load PNG image and convert to YCbCr (only on root)
+# Step 1: Load PNG image and convert to grayscale (only on root)
 if rank == 0:
     img_path = Path("images/gato.png")
-    rgb = imageio.imread('gato.png').astype(np.float32)
+    rgb = imageio.imread(img_path).astype(np.float32)
+    # Convert to grayscale using luminance formula
+    gray = 0.299 * rgb[:, :, 0] + 0.587 * rgb[:, :, 1] + 0.114 * rgb[:, :, 2]
 else:
-    rgb = None
+    gray = None
 
-# Broadcast the image to all processes
-rgb = comm.bcast(rgb, root=0)
+# Broadcast grayscale image to all processes
+gray = comm.bcast(gray, root=0)
 
-# RGB to YCbCr conversion
-
-def rgb_to_ycbcr(image):
-    R = image[:, :, 0]
-    G = image[:, :, 1]
-    B = image[:, :, 2]
-    Y  =  0.299 * R + 0.587 * G + 0.114 * B
-    Cb = -0.168736 * R - 0.331264 * G + 0.5 * B + 128
-    Cr =  0.5 * R - 0.418688 * G - 0.081312 * B + 128
-    return Y, Cb, Cr
-
-# YCbCr to RGB conversion
-
-def ycbcr_to_rgb(Y, Cb, Cr):
-    R = Y + 1.402 * (Cr - 128)
-    G = Y - 0.344136 * (Cb - 128) - 0.714136 * (Cr - 128)
-    B = Y + 1.772 * (Cb - 128)
-    rgb = np.stack((R, G, B), axis=-1)
-    return np.clip(rgb, 0, 255).astype(np.uint8)
-
-Y, Cb, Cr = rgb_to_ycbcr(rgb)
-
-# Step 2: Pad images to multiples of 8
-
+# Step 2: Pad image to multiple of 8
 def pad_image(image, block_size=8):
     h, w = image.shape
     pad_h = (block_size - h % block_size) % block_size
@@ -56,12 +34,9 @@ def pad_image(image, block_size=8):
     padded = np.pad(image, ((0, pad_h), (0, pad_w)), mode='constant')
     return padded, h, w
 
-Y_padded, orig_h, orig_w = pad_image(Y)
-Cb_padded, _, _ = pad_image(Cb)
-Cr_padded, _, _ = pad_image(Cr)
+gray_padded, orig_h, orig_w = pad_image(gray)
 
-# Step 3: Create DCT transformation matrix
-
+# Step 3: DCT matrix
 def dct_matrix(N=8):
     C = np.zeros((N, N))
     for k in range(N):
@@ -72,16 +47,14 @@ def dct_matrix(N=8):
 
 C = dct_matrix(8)
 
-# Step 4: DCT and IDCT using matrix multiplication
-
+# Step 4: DCT and IDCT
 def dct_2d_vec(block):
     return C @ block @ C.T
-
 
 def idct_2d_vec(block):
     return C.T @ block @ C
 
-# Step 5: Standard JPEG quantization matrices
+# Step 5: Quantization matrix for luminance
 Q_Y = np.array([
     [16,11,10,16,24,40,51,61],
     [12,12,14,19,26,58,60,55],
@@ -93,19 +66,7 @@ Q_Y = np.array([
     [72,92,95,98,112,100,103,99]
 ])
 
-Q_C = np.array([
-    [17,18,24,47,99,99,99,99],
-    [18,21,26,66,99,99,99,99],
-    [24,26,56,99,99,99,99,99],
-    [47,66,99,99,99,99,99,99],
-    [99,99,99,99,99,99,99,99],
-    [99,99,99,99,99,99,99,99],
-    [99,99,99,99,99,99,99,99],
-    [99,99,99,99,99,99,99,99]
-])
-
-# Step 6: Process each channel in parallel
-
+# Step 6: Parallel compression
 def process_channel_parallel(channel, Q):
     block_size = 8
     h, w = channel.shape
@@ -114,10 +75,7 @@ def process_channel_parallel(channel, Q):
     # Divide rows among processes
     rows_per_proc = h // size
     start_row = rank * rows_per_proc
-    if rank == size - 1:
-        end_row = h  # last process takes the rest
-    else:
-        end_row = (rank + 1) * rows_per_proc
+    end_row = h if rank == size - 1 else (rank + 1) * rows_per_proc
 
     # Process assigned rows
     for i in range(start_row, end_row, block_size):
@@ -134,28 +92,18 @@ def process_channel_parallel(channel, Q):
     comm.Allreduce(compressed, full_compressed, op=MPI.SUM)
     return full_compressed
 
-Y_compressed = process_channel_parallel(Y_padded, Q_Y)
-Cb_compressed = process_channel_parallel(Cb_padded, Q_C)
-Cr_compressed = process_channel_parallel(Cr_padded, Q_C)
+# Run compression
+gray_compressed = process_channel_parallel(gray_padded, Q_Y)
 
-# Step 7: Crop back to original size (only root)
-# Step 7: Crop back to original size (only root)
+# Step 7: Crop back to original size and save (only root)
 if rank == 0:
-    Y_final = Y_compressed[:orig_h, :orig_w]
-    Cb_final = Cb_compressed[:orig_h, :orig_w]
-    Cr_final = Cr_compressed[:orig_h, :orig_w]
-
-    # Step 8: Convert back to RGB
-    final_rgb = ycbcr_to_rgb(Y_final, Cb_final, Cr_final)
-
-    # End time and print
+    final_gray = gray_compressed[:orig_h, :orig_w]
     end_time = time.perf_counter()
     total_time = end_time - start_time
-    print(f"Total Execution Time: {total_time:.3f} seconds")
-    print(f"Used {size} MPI processes")
+    print(f"Total Execution Time: {total_time:.3f} seconds using {size} MPI processes")
 
-    # Save and show final image
-    out_path = Path("outputs/mpi_png.jpeg")
-    plt.imsave(out_path, final_rgb.astype(np.uint8))
+    out_path = Path("outputs/mpi_gray.jpeg")
+    plt.imsave(out_path, final_gray.astype(np.uint8), cmap='gray')
+
 
 

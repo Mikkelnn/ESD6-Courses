@@ -1,35 +1,68 @@
+import time
 import subprocess
+import numpy as np
 
-# Path to hyperfine executable (adjust if needed)
-HYPERFINE = "hyperfine.exe"  # or just "hyperfine" if it's in your PATH
-
-# Scripts to benchmark
-SCRIPTS = [
-    ("NumPy vectorized (PNG)", "python scripts/numpy_vectorized_png.py"),
-    ("NumPy vectorized (NEF)", "python scripts/numpy_vectorized_raw.py"),
-    ("JIT Numba (PNG)", "python scripts/jit_png.py"),
+# Lista de implementaciones
+implementaciones = [
+    
     ("JIT Numba (NEF)", "python scripts/jit_raw.py"),
-    ("MPI (PNG)", "mpiexec -n 4 python scripts/mpi_png.py"),
-    ("MPI (NEF)", "mpiexec -n 4 python scripts/mpi_raw.py"),
-    ("GPU (PNG)", "python scripts/opencl_png.py"),
-    ("GPU (NEF)", "python scripts/opencl_raw.py"),
+    ("JIT Numba (PNG)", "python scripts/jit_png.py"),
+    ("Numpy Vectorized (NEF)", "python scripts/numpy_vectorized_raw.py"),
+    ("Numpy Vectorized (PNG)", "python scripts/numpy_vectorized_png.py"),
+    ("OpenCL (NEF)", "python scripts/opencl_raw.py"),
+    ("OpenCL (PNG)", "python scripts/opencl_png.py"),
+    ("MPI (NEF)", "python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "python scripts/mpi_png.py"),
+
 ]
 
-RUNS = 10  # Number of repetitions
+def run_command(cmd):
+    start = time.perf_counter()
+    try:
+        subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error en: {cmd}\n{e.stderr.decode()}")
+        return None
+    end = time.perf_counter()
+    return end - start
 
-def run_benchmark(label, command):
-    print(f"\n⏱️ Benchmarking: {label}")
-    result = subprocess.run([
-        HYPERFINE,
-        "--runs", str(RUNS),
-        "--warmup", "1",
-        #"--style", "basic",
-        "--show-output",  # 🔍 Show error output from Python script
-        command
-    ])
-    if result.returncode != 0:
-        print(f"❌ Error running benchmark for {label}")
+def benchmark_command(name, cmd, reps=5):
+    tiempos = []
+    print(f"\n🏁 Benchmarking: {name}")
+    for i in range(reps):
+        print(f"  → Ejecución {i+1}/{reps}...", end="")
+        t = run_command(cmd)
+        if t is not None:
+            tiempos.append(t)
+            print(f" {t:.4f} s")
+        else:
+            print(" Error")
+    tiempos = np.array(tiempos)
+    return {
+        'media': np.mean(tiempos),
+        'desviación estándar': np.std(tiempos),
+        'varianza': np.var(tiempos),
+        'repeticiones': reps,
+        'todas las repeticiones': tiempos.tolist()
+    }
+
+def main():
+    reps = 5  # número de repeticiones por implementación
+    resultados = {}
+
+    for nombre, comando in implementaciones:
+        resultados[nombre] = benchmark_command(nombre, comando, reps)
+
+    print("\n📊 RESULTADOS FINALES:")
+    for nombre, stats in resultados.items():
+        print(f"\n[{nombre}]")
+        for clave, valor in stats.items():
+            if isinstance(valor, float):
+                print(f"  {clave}: {valor:.6f} s")
+            elif isinstance(valor, list):
+                print(f"  {clave}: {[round(v, 4) for v in valor]}")
+            else:
+                print(f"  {clave}: {valor}")
 
 if __name__ == "__main__":
-    for label, cmd in SCRIPTS:
-        run_benchmark(label, cmd)
+    main()

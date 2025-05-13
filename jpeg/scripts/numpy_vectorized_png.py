@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Paso 1: Cargar imagen PNG y convertir a YCbCr
 img_path = Path("images/gato.png")
-rgb = imageio.imread('gato.png').astype(np.float32)
+rgb = imageio.imread(img_path).astype(np.float32)
 
 def rgb_to_ycbcr(image):
     R = image[:, :, 0]
