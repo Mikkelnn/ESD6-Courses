@@ -5,15 +5,28 @@ import numpy as np
 # Lista de implementaciones
 implementaciones = [
     
-    ("JIT Numba (NEF)", "python scripts/jit_raw.py"),
-    ("JIT Numba (PNG)", "python scripts/jit_png.py"),
-    ("Numpy Vectorized (NEF)", "python scripts/numpy_vectorized_raw.py"),
-    ("Numpy Vectorized (PNG)", "python scripts/numpy_vectorized_png.py"),
-    ("OpenCL (NEF)", "python scripts/opencl_raw.py"),
+     ("JIT Numba (NEF)", "python scripts/jit_raw.py"), 
+    ("JIT Numba (PNG)", "python scripts/jit_png.py"), 
+    ("Numpy Vectorized (NEF)", "python scripts/numpy_vectorized_raw.py"), 
+    ("Numpy Vectorized (PNG)", "python scripts/numpy_vectorized_png.py"), 
+    ("OpenCL (NEF)", "python scripts/opencl_raw.py"), 
     ("OpenCL (PNG)", "python scripts/opencl_png.py"),
-    ("MPI (NEF)", "python scripts/mpi_raw.py"),
-    ("MPI (PNG)", "python scripts/mpi_png.py"),
-
+    ("MPI (NEF)", "mpiexec -n 1 python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "mpiexec -n 1 python scripts/mpi_png.py"),
+    ("MPI (NEF)", "mpiexec -n 2 python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "mpiexec -n 2 python scripts/mpi_png.py"),
+    ("MPI (NEF)", "mpiexec -n 3 python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "mpiexec -n 3 python scripts/mpi_png.py"),
+    ("MPI (NEF)", "mpiexec -n 4 python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "mpiexec -n 4 python scripts/mpi_png.py"),
+    ("MPI (NEF)", "mpiexec -n 5 python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "mpiexec -n 5 python scripts/mpi_png.py"),
+    ("MPI (NEF)", "mpiexec -n 6 python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "mpiexec -n 6 python scripts/mpi_png.py"),
+    ("MPI (NEF)", "mpiexec -n 7 python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "mpiexec -n 7 python scripts/mpi_png.py"),
+    ("MPI (NEF)", "mpiexec -n 8 python scripts/mpi_raw.py"),
+    ("MPI (PNG)", "mpiexec -n 8 python scripts/mpi_png.py"),
 ]
 
 def run_command(cmd):
